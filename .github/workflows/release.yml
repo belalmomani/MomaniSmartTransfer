@@ -204,6 +204,22 @@ jobs:
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: ./gradlew :app:assembleRelease --console=plain
 
+      # The APK must be signed by the key whose fingerprint is below, or no release is made. The
+      # fingerprint is public (it identifies the certificate, it cannot sign anything), so it lives here.
+      - name: Check the signing certificate
+        if: steps.version.outputs.new == 'true'
+        env:
+          EXPECTED_SHA256: A6:E6:B7:DA:63:D0:CB:3C:92:A6:1A:5B:36:E1:0A:A1:29:BB:06:55:9E:86:A0:AB:CA:2C:58:64:AA:55:CC:89
+        run: |
+          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
+          ACTUAL=$("$APKSIGNER" verify --print-certs app/build/outputs/apk/release/app-release.apk | grep -m1 'certificate SHA-256 digest' | sed 's/.*: //' | tr -d ':' | tr 'A-F' 'a-f')
+          WANT=$(printf '%s' "$EXPECTED_SHA256" | tr -d ':' | tr 'A-F' 'a-f')
+          echo "Signed with SHA-256: ${ACTUAL:-none}"
+          if [ -z "$ACTUAL" ] || [ "$ACTUAL" != "$WANT" ]; then
+            echo "::error::The APK is unsigned or signed with a different key than the expected fingerprint. No release was made."
+            exit 1
+          fi
+
       # Notes: the version's CHANGELOG.md section, then every commit since the
       # previous tag.
       - name: Tag and release
