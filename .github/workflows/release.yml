@@ -202,6 +202,8 @@ jobs:
           RELEASE_KEYSTORE: ${{ runner.temp }}/release.jks
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+          # Optional: only for a keystore whose store password differs from the key password.
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
         run: ./gradlew :app:assembleRelease --console=plain
 
       # The APK must be signed by the key whose fingerprint is below, or no release is made. The

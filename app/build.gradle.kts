@@ -39,9 +39,10 @@ android {
         if (keystore != null) {
             create("release") {
                 storeFile = file(keystore)
-                // keytool's PKCS12 default has one password for the store and the key.
+                // keytool's PKCS12 default has one password for the store and the key. A JKS store with a
+                // separate store password sets RELEASE_STORE_PASSWORD too; unset or empty, the key password is used.
                 val password = providers.environmentVariable("RELEASE_KEY_PASSWORD").get()
-                storePassword = password
+                storePassword = providers.environmentVariable("RELEASE_STORE_PASSWORD").orNull?.takeIf { it.isNotEmpty() } ?: password
                 keyAlias = providers.environmentVariable("RELEASE_KEY_ALIAS").get()
                 keyPassword = password
             }

@@ -12,8 +12,13 @@ until this file has a section for its version.
 
 ## Unreleased
 
-## 1.0.0 — 2026-10-26
+## 1.0.0 — 2026-10-27
 
+- **New:** Send several files at once; they go one after another, a failed file doesn't stop the rest, and Cancel says what was already sent.
+- **New:** Each sent file is checked against the TV's SHA-256 when the TV has `sha256sum`; a mismatch is reported as a warning, and a TV that can't check is said to be unchecked.
+- **New:** Speed and time left while sending.
+- **New:** Transfer log (Settings → Transfer log): search, filter, sort, details, remove an entry, clear. It never deletes the copied files.
+- **New:** Favorite TVs are listed first; star one from its menu.
 - **New:** Renamed to Momani Smart Transfer, a modified fork of Tellyscope 0.9.0 (new app ID com.momani.smarttransfer).
 
 ## 0.9.0 — 2026-10-26

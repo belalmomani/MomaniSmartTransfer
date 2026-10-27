@@ -1,5 +1,9 @@
 # <img src="docs/logo/icon.svg" alt="" width="64" height="64" align="middle"> Tellyscope
 
+> **Momani Smart Transfer** is a modified version of [Tellyscope](https://github.com/man15h/tellyscope) 0.9.0, licensed under GPL-3.0 like the original.
+> Changes: new name and app ID (`com.momani.smarttransfer`); send several files in a row, with a SHA-256 check against the TV when it can compute one;
+> a persistent transfer log (Settings → Transfer log); favorite TVs. See [CHANGELOG.md](CHANGELOG.md) and [NOTICE](NOTICE). The rest of this page is the original project's.
+
 Debloat your Android TV, install apps, and browse and transfer files on it, all from your phone. No root, no PC.
 
 <p>
