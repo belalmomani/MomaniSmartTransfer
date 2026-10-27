@@ -118,6 +118,7 @@ jobs:
           printf '%s' "$ALPHA_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/alpha.jks"
 
       # Gradle reads the RELEASE_* names for whichever key the job hands it.
+      - run: chmod +x gradlew
       - name: Build
         env:
           RELEASE_KEYSTORE: ${{ runner.temp }}/alpha.jks
@@ -194,6 +195,7 @@ jobs:
           fi
           printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
 
+      - run: chmod +x gradlew
       - name: Build
         if: steps.version.outputs.new == 'true'
         env:

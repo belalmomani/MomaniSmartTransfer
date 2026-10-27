@@ -31,6 +31,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
 
       # build = assemble (debug + release) + unit tests + Android lint
+      # Uploads through a browser or an API drop the executable bit; exit code 126 means this.
+      - run: chmod +x gradlew
+
       - run: ./gradlew build --console=plain
 
       # The debug APK of every green build, downloadable from the run's page. Debug-signed, not for release.
