@@ -602,7 +602,7 @@ class ScreenshotTest {
         compose.onNodeWithText("cleanyourtv").performClick()
         compose.onNodeWithText("How to use your own lists").performClick()
         assertEquals(listOf("https://github.com/Gathin23/cleanyourtv", RELEASES.removeSuffix("/releases") + "/blob/main/CONTRIBUTING.md#using-your-own-lists"), opened)
-        assertTrue(opened[1].startsWith("https://github.com/") && opened[1].contains("/tellyscope/blob/main/CONTRIBUTING.md"))
+        assertTrue(opened[1].startsWith("https://github.com/") && opened[1].contains("/MomaniSmartTransfer/blob/main/CONTRIBUTING.md"))
         // It opens the existing source dialog, unchanged.
         compose.onNodeWithText("Use your own debloat lists").assertHasClickAction()
     }

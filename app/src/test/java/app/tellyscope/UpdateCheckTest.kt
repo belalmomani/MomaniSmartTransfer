@@ -67,7 +67,7 @@ class UpdateCheckTest {
         val u = UpdateCheck(tmp.newFile(), "0.2.0-alpha.1", alpha = true, fetch = { releases(release("v0.2.0")).toByteArray() }).check()
         assertEquals("0.2.0", u?.version)
         assertEquals("Notes for v0.2.0", u?.notes)
-        assertTrue(u!!.url.endsWith("/tellyscope/releases/tag/v0.2.0"))
+        assertTrue(u!!.url.endsWith("/MomaniSmartTransfer/releases/tag/v0.2.0"))
     }
 
     @Test fun `nothing when the running version is the newest`() = runTest {
