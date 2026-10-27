@@ -249,7 +249,7 @@ fun TellyscopeApp(vm: TellyscopeViewModel) {
         AccessScreen(state, accessActions(vm) { access = false }, snackbar = snackbar)
     } else if (transferLog) {
         BackHandler { transferLog = false }
-        val records by vm.transfers.collectAsStateWithLifecycle()
+        val records by vm.transferHistory.collectAsStateWithLifecycle()
         TransferLogScreen(records, onDelete = vm::deleteTransfer, onClear = vm::clearTransfers, back = { transferLog = false })
     } else if (settings) {
         BackHandler { settings = false }

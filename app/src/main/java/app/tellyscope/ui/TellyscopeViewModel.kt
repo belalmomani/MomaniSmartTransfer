@@ -300,8 +300,8 @@ class TellyscopeViewModel(
     val done: StateFlow<Done?> = _done.asStateFlow()
 
     /** Every copy that ended, newest first. */
-    private val _transfers = MutableStateFlow(transferLog?.all().orEmpty())
-    val transfers: StateFlow<List<TransferRecord>> = _transfers.asStateFlow()
+    private val _transferHistory = MutableStateFlow(transferLog?.all().orEmpty())
+    val transferHistory: StateFlow<List<TransferRecord>> = _transferHistory.asStateFlow()
 
     /** One-shot snackbar lines: the TV refused, went away mid-action, or a restore or copy finished. */
     private val _notice = MutableStateFlow<String?>(null)
@@ -907,17 +907,17 @@ class TellyscopeViewModel(
     ) {
         val log = transferLog ?: return
         log.add(TransferRecord(0, deviceId, deviceLabel(deviceId), toTv, folder.path, fileName, savedAs, size, startedAt, clock(), status, error, check, sha256))
-        _transfers.value = log.all()
+        _transferHistory.value = log.all()
     }
 
     fun deleteTransfer(id: Long) {
         transferLog?.remove(id)
-        _transfers.value = transferLog?.all().orEmpty()
+        _transferHistory.value = transferLog?.all().orEmpty()
     }
 
     fun clearTransfers() {
         transferLog?.clear()
-        _transfers.value = emptyList()
+        _transferHistory.value = emptyList()
     }
 
     /** The file whose "save as" picker is open. Kept here so it survives the activity being recreated behind the picker. */
