@@ -113,9 +113,9 @@ fun SettingsScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                 ) {
                     Column(Modifier.padding(16.dp)) {
-                        Text("Transfer log", style = MaterialTheme.typography.titleSmall)
+                        Text(L.t("Transfer log", "سجل النقل"), style = MaterialTheme.typography.titleSmall)
                         Text(
-                            "Every file you sent to a TV or saved to your phone, with what happened to it.",
+                            L.t("Every file you sent to a TV or saved to your phone, with what happened to it.", "كل ملف أرسلته إلى تلفزيون أو حفظته على هاتفك، مع ما حدث له."),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }

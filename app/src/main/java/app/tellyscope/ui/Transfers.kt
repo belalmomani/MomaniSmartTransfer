@@ -288,7 +288,12 @@ fun TransferDialog(t: TransferUi, onCancel: () -> Unit) {
     AlertDialog(
         onDismissRequest = {},
         properties = Sticky,
-        title = { Text((if (t.toTv) "Sending to ${Copy.folder(t.folder)}" else "Saving to your phone") + if (t.count > 1) " (${t.index} of ${t.count})" else "") },
+        title = {
+            Text(
+                (if (t.toTv) L.t("Sending to ${Copy.folder(t.folder)}", "جارٍ الإرسال إلى ${Copy.folder(t.folder)}") else L.t("Saving to your phone", "جارٍ الحفظ على هاتفك")) +
+                    if (t.count > 1) L.t(" (${t.index} of ${t.count})", " (${t.index} من ${t.count})") else "",
+            )
+        },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(t.name, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.MiddleEllipsis)
@@ -299,8 +304,9 @@ fun TransferDialog(t: TransferUi, onCancel: () -> Unit) {
                 // All bytes sent but the dialog still up: the TV is hashing what it stored.
                 val checking = t.toTv && p?.total != null && p.done >= p.total!!
                 Text(
-                    if (checking) "Checking the copy on the TV…"
-                    else p?.let { q -> q.total?.let { "${Copy.bytes(q.done)} of ${Copy.bytes(it)}" } ?: Copy.bytes(q.done) } ?: "Starting…",
+                    if (checking) L.t("Checking the copy on the TV…", "جارٍ فحص النسخة على التلفزيون…")
+                    else p?.let { q -> q.total?.let { L.t("${Copy.bytes(q.done)} of ${Copy.bytes(it)}", "${Copy.bytes(q.done)} من ${Copy.bytes(it)}") } ?: Copy.bytes(q.done) }
+                        ?: L.t("Starting…", "جارٍ البدء…"),
                     style = SmallNumber,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -310,6 +316,6 @@ fun TransferDialog(t: TransferUi, onCancel: () -> Unit) {
             }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = onCancel) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onCancel) { Text(L.t("Cancel", "إلغاء")) } },
     )
 }

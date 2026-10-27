@@ -77,20 +77,20 @@ fun TransferLogScreen(
     if (open != null) DetailsDialog(open, onClose = { openId = null }, onDelete = { onDelete(open.id); openId = null })
     if (confirmClear) AlertDialog(
         onDismissRequest = { confirmClear = false },
-        title = { Text("Clear the transfer log?") },
-        text = { Text("This only empties the list. Files already copied stay on the TV and the phone.") },
-        confirmButton = { TextButton(onClick = { confirmClear = false; onClear() }) { Text("Clear log") } },
-        dismissButton = { TextButton(onClick = { confirmClear = false }) { Text("Keep it") } },
+        title = { Text(L.t("Clear the transfer log?", "مسح سجل النقل؟")) },
+        text = { Text(L.t("This only empties the list. Files already copied stay on the TV and the phone.", "هذا يفرغ القائمة فقط. الملفات المنسوخة تبقى على التلفزيون والهاتف.")) },
+        confirmButton = { TextButton(onClick = { confirmClear = false; onClear() }) { Text(L.t("Clear log", "مسح السجل")) } },
+        dismissButton = { TextButton(onClick = { confirmClear = false }) { Text(L.t("Keep it", "إبقاء السجل")) } },
     )
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Transfer log") },
-                navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } },
+                title = { Text(L.t("Transfer log", "سجل النقل")) },
+                navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = L.t("Back", "رجوع")) } },
                 actions = {
                     IconButton(onClick = { confirmClear = true }, enabled = records.isNotEmpty()) {
-                        Icon(Icons.Default.Delete, contentDescription = "Clear the log")
+                        Icon(Icons.Default.Delete, contentDescription = L.t("Clear the log", "مسح السجل"))
                     }
                 },
             )
@@ -102,15 +102,15 @@ fun TransferLogScreen(
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                placeholder = { Text("Search by file or TV") },
+                placeholder = { Text(L.t("Search by file or TV", "ابحث باسم الملف أو التلفزيون")) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                listOf(LogFilter.ALL to "All", LogFilter.DONE to "Done", LogFilter.FAILED to "Failed").forEach { (f, label) ->
+                listOf(LogFilter.ALL to L.t("All", "الكل"), LogFilter.DONE to L.t("Done", "تم"), LogFilter.FAILED to L.t("Failed", "فشل")).forEach { (f, label) ->
                     FilterChip(selected = filter == f, onClick = { filter = f }, label = { Text(label) })
                 }
                 Column {
-                    TextButton(onClick = { sortMenu = true }) { Text("Sort: ${sortLabel(sort)}") }
+                    TextButton(onClick = { sortMenu = true }) { Text(L.t("Sort: ${sortLabel(sort)}", "الترتيب: ${sortLabel(sort)}")) }
                     DropdownMenu(sortMenu, onDismissRequest = { sortMenu = false }) {
                         LogSort.entries.forEach { s ->
                             DropdownMenuItem(text = { Text(sortLabel(s)) }, onClick = { sort = s; sortMenu = false })
@@ -120,11 +120,11 @@ fun TransferLogScreen(
             }
             when {
                 records.isEmpty() -> Text(
-                    "No transfers yet. Files you send to the TV or save to your phone are listed here.",
+                    L.t("No transfers yet. Files you send to the TV or save to your phone are listed here.", "لا توجد عمليات نقل بعد. الملفات التي ترسلها إلى التلفزيون أو تحفظها على هاتفك تظهر هنا."),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                shown.isEmpty() -> Text("Nothing matches.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                shown.isEmpty() -> Text(L.t("Nothing matches.", "لا نتائج مطابقة."), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 else -> LazyColumn(contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(shown, key = { it.id }) { r -> RecordRow(r) { openId = r.id } }
                 }
@@ -142,7 +142,7 @@ private fun RecordRow(r: TransferRecord, onClick: () -> Unit) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(r.savedAs ?: r.name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.MiddleEllipsis)
             Text(
-                "${if (r.toTv) "To" else "From"} ${r.deviceName} · ${r.size?.let { b -> Copy.bytes(b) } ?: "size unknown"} · ${dateTime(r.startedAt)}",
+                L.t(if (r.toTv) "To" else "From", if (r.toTv) "إلى" else "من") + " ${r.deviceName} · ${r.size?.let { b -> Copy.bytes(b) } ?: L.t("size unknown", "الحجم غير معروف")} · ${dateTime(r.startedAt)}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -160,18 +160,18 @@ private fun DetailsDialog(r: TransferRecord, onClose: () -> Unit, onDelete: () -
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 fun line(label: String, value: String?) = value?.let { label to it }
                 listOfNotNull(
-                    line("Result", statusLine(r)),
-                    line("Saved as", r.savedAs),
-                    line("Direction", if (r.toTv) "Phone to TV" else "TV to phone"),
-                    line("TV", r.deviceName),
-                    line("TV folder", TvFolder.entries.firstOrNull { it.path == r.folder }?.let { f -> Copy.folder(f) } ?: r.folder),
-                    line("Type", fileType(r.name)),
-                    line("Size", r.size?.let { b -> Copy.bytes(b) }),
-                    line("Started", dateTime(r.startedAt)),
-                    line("Finished", dateTime(r.finishedAt)),
-                    line("Took", duration(r.durationMs)),
-                    line("Speed", r.bytesPerSecond?.let { "${Copy.bytes(it)}/s" }),
-                    line("Why it failed", r.error),
+                    line(L.t("Result", "النتيجة"), statusLine(r)),
+                    line(L.t("Saved as", "حُفظ باسم"), r.savedAs),
+                    line(L.t("Direction", "الاتجاه"), if (r.toTv) L.t("Phone to TV", "من الهاتف إلى التلفزيون") else L.t("TV to phone", "من التلفزيون إلى الهاتف")),
+                    line(L.t("TV", "التلفزيون"), r.deviceName),
+                    line(L.t("TV folder", "مجلد التلفزيون"), TvFolder.entries.firstOrNull { it.path == r.folder }?.let { f -> Copy.folder(f) } ?: r.folder),
+                    line(L.t("Type", "النوع"), fileType(r.name)),
+                    line(L.t("Size", "الحجم"), r.size?.let { b -> Copy.bytes(b) }),
+                    line(L.t("Started", "البداية"), dateTime(r.startedAt)),
+                    line(L.t("Finished", "النهاية"), dateTime(r.finishedAt)),
+                    line(L.t("Took", "المدة"), duration(r.durationMs)),
+                    line(L.t("Speed", "السرعة"), r.bytesPerSecond?.let { Copy.bytes(it) + L.t("/s", "/ث") }),
+                    line(L.t("Why it failed", "سبب الفشل"), r.error),
                     line("SHA-256", r.sha256),
                 ).forEach { (label, value) ->
                     Column {
@@ -180,32 +180,32 @@ private fun DetailsDialog(r: TransferRecord, onClose: () -> Unit, onDelete: () -
                     }
                 }
                 Text(
-                    "Removing this entry doesn't delete the file itself.",
+                    L.t("Removing this entry doesn't delete the file itself.", "حذف هذا السجل لا يحذف الملف نفسه."),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         },
-        confirmButton = { TextButton(onClick = onClose) { Text("Close") } },
-        dismissButton = { TextButton(onClick = onDelete) { Text("Remove entry") } },
+        confirmButton = { TextButton(onClick = onClose) { Text(L.t("Close", "إغلاق")) } },
+        dismissButton = { TextButton(onClick = onDelete) { Text(L.t("Remove entry", "حذف السجل")) } },
     )
 }
 
 private fun sortLabel(s: LogSort) = when (s) {
-    LogSort.DATE -> "Date"
-    LogSort.NAME -> "Name"
-    LogSort.SIZE -> "Size"
-    LogSort.STATUS -> "Status"
+    LogSort.DATE -> L.t("Date", "التاريخ")
+    LogSort.NAME -> L.t("Name", "الاسم")
+    LogSort.SIZE -> L.t("Size", "الحجم")
+    LogSort.STATUS -> L.t("Status", "الحالة")
 }
 
 /** What happened, in words, including a failed check: a mismatch is never shown as a plain success. */
 private fun statusLine(r: TransferRecord): String = when (r.status) {
-    TransferStatus.FAILED -> "Failed"
-    TransferStatus.CANCELLED -> "Cancelled"
-    TransferStatus.DONE -> (if (r.toTv) "Sent" else "Saved") + when (r.check) {
-        TransferCheck.VERIFIED -> ", checked: matches"
-        TransferCheck.MISMATCH -> ", WARNING: the TV's copy does not match"
-        TransferCheck.UNCHECKED -> ", not checked"
+    TransferStatus.FAILED -> L.t("Failed", "فشل")
+    TransferStatus.CANCELLED -> L.t("Cancelled", "أُلغي")
+    TransferStatus.DONE -> (if (r.toTv) L.t("Sent", "تم الإرسال") else L.t("Saved", "تم الحفظ")) + when (r.check) {
+        TransferCheck.VERIFIED -> L.t(", checked: matches", "، تم التحقق: مطابق")
+        TransferCheck.MISMATCH -> L.t(", WARNING: the TV's copy does not match", "، تحذير: نسخة التلفزيون غير مطابقة")
+        TransferCheck.UNCHECKED -> L.t(", not checked", "، لم يتم التحقق")
         null -> ""
     }
 }
@@ -217,7 +217,7 @@ private fun statusColor(r: TransferRecord): Color = when {
 }
 
 private fun fileType(name: String): String? =
-    name.substringAfterLast('.', "").takeIf { it.isNotEmpty() && it.length <= 8 }?.uppercase()?.let { "$it file" }
+    name.substringAfterLast('.', "").takeIf { it.isNotEmpty() && it.length <= 8 }?.uppercase()?.let { L.t("$it file", "ملف $it") }
 
 private fun dateTime(ms: Long): String = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(ms))
 
@@ -225,7 +225,7 @@ private fun duration(ms: Long): String? {
     val s = ms / 1000
     return when {
         s < 1 -> null
-        s < 60 -> "$s s"
-        else -> "${s / 60} min ${s % 60} s"
+        s < 60 -> L.t("$s s", "$s ث")
+        else -> L.t("${s / 60} min ${s % 60} s", "${s / 60} د ${s % 60} ث")
     }
 }

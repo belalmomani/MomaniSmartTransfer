@@ -430,7 +430,7 @@ private fun AppMenu(state: UiState, actions: DeviceActions) {
             }
             MenuBlock {
                 DropdownMenuItem(
-                    text = { Text(if (device.favorite) "Remove from favorites" else "Add to favorites") },
+                    text = { Text(if (device.favorite) L.t("Remove from favorites", "إزالة من المفضلة") else L.t("Add to favorites", "إضافة إلى المفضلة")) },
                     leadingIcon = { Icon(Icons.Default.Star, null) },
                     onClick = { open = false; actions.favorite(device.id, !device.favorite) },
                 )

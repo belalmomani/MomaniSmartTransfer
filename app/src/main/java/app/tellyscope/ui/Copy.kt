@@ -239,8 +239,8 @@ object Copy {
     }
 
     fun folder(f: TvFolder) = when (f) {
-        TvFolder.DOWNLOAD -> "Download"
-        TvFolder.MOVIES -> "Movies"
+        TvFolder.DOWNLOAD -> L.t("Download", "التنزيلات")
+        TvFolder.MOVIES -> L.t("Movies", "الأفلام")
     }
 
     // Sideload
@@ -299,30 +299,41 @@ object Copy {
     // Files
 
     fun sent(name: String, savedAs: String, f: TvFolder) =
-        if (savedAs == name) "Sent $name to ${folder(f)}" else "Sent to ${folder(f)} as $savedAs, since $name was already there"
+        if (savedAs == name) L.t("Sent $name to ${folder(f)}", "تم إرسال $name إلى ${folder(f)}")
+        else L.t("Sent to ${folder(f)} as $savedAs, since $name was already there", "تم الإرسال إلى ${folder(f)} باسم $savedAs لأن $name موجود مسبقاً")
 
-    fun saved(name: String) = "Saved $name to your phone"
+    fun saved(name: String) = L.t("Saved $name to your phone", "تم حفظ $name على هاتفك")
 
     /** One file, with what the SHA-256 check found. */
     fun sentChecked(name: String, savedAs: String, f: TvFolder, integrity: Integrity?) = sent(name, savedAs, f) + when (integrity) {
-        is Integrity.Verified -> ". Checked: the TV's copy matches (SHA-256)."
-        is Integrity.Mismatch -> ". Warning: the TV's copy does NOT match what was sent. Delete it and send again."
-        is Integrity.Unchecked -> ". Not checked: this TV can't compute SHA-256."
+        is Integrity.Verified -> L.t(". Checked: the TV's copy matches (SHA-256).", ". تم التحقق: نسخة التلفزيون مطابقة (SHA-256).")
+        is Integrity.Mismatch -> L.t(
+            ". Warning: the TV's copy does NOT match what was sent. Delete it and send again.",
+            ". تحذير: نسخة التلفزيون غير مطابقة لما أُرسل. احذفها وأعد الإرسال.",
+        )
+        is Integrity.Unchecked -> L.t(". Not checked: this TV can't compute SHA-256.", ". لم يتم التحقق: هذا التلفزيون لا يستطيع حساب SHA-256.")
         null -> ""
     }
 
     /** Several files. [bad] failed the check, [failed] didn't arrive, [unchecked] arrived without a check. */
     fun queueDone(sent: Int, failed: Int, bad: Int, unchecked: Int, f: TvFolder): String {
-        val parts = mutableListOf("Sent $sent ${if (sent == 1) "file" else "files"} to ${folder(f)}")
-        if (bad > 0) parts += "$bad did NOT match after sending: delete and resend them"
-        if (unchecked > 0) parts += "$unchecked couldn't be checked"
-        if (failed > 0) parts += "$failed failed: pick them again to retry"
+        val ar = L.arabic
+        val parts = mutableListOf(
+            if (ar) "الملفات المرسلة إلى ${folder(f)}: $sent"
+            else "Sent $sent ${if (sent == 1) "file" else "files"} to ${folder(f)}",
+        )
+        if (bad > 0) parts += L.t("$bad did NOT match after sending: delete and resend them", "$bad لم تتطابق بعد الإرسال: احذفها وأعد إرسالها")
+        if (unchecked > 0) parts += L.t("$unchecked couldn't be checked", "$unchecked تعذّر فحصها")
+        if (failed > 0) parts += L.t("$failed failed: pick them again to retry", "$failed فشلت: اخترها من جديد لإعادة المحاولة")
         return parts.joinToString(". ") + "."
     }
 
     fun cancelledQueue(alreadySent: Int) =
         if (alreadySent == 0) CANCELLED_SEND
-        else "Cancelled. $alreadySent ${if (alreadySent == 1) "file was" else "files were"} already sent; the one in progress was removed."
+        else L.t(
+            "Cancelled. $alreadySent ${if (alreadySent == 1) "file was" else "files were"} already sent; the one in progress was removed.",
+            "تم الإلغاء. أُرسل $alreadySent من الملفات بالفعل، وأُزيل الملف الذي كان قيد الإرسال.",
+        )
 
     /** "12 MB/s · about 2 min left", or null before there's enough to say. */
     fun rate(done: Long, total: Long?, startedAt: Long, now: Long): String? {
@@ -330,14 +341,26 @@ object Copy {
         if (startedAt <= 0 || secs < 2 || done <= 0) return null
         val perSec = done / secs
         val left = total?.takeIf { it > done }?.let { ((it - done) / perSec).toLong() }
-        return "${bytes(perSec.toLong())}/s" + (left?.let { " · about ${if (it < 90) "$it s" else "${(it + 30) / 60} min"} left" } ?: "")
+        return bytes(perSec.toLong()) + L.t("/s", "/ث") + (left?.let {
+            L.t(
+                " · about ${if (it < 90) "$it s" else "${(it + 30) / 60} min"} left",
+                " · المتبقي نحو ${if (it < 90) "$it ث" else "${(it + 30) / 60} د"}",
+            )
+        } ?: "")
     }
-    fun sendFailed(name: String) = "Couldn't send $name. Check the TV is still connected and has space."
-    fun saveFailed(name: String) = "Couldn't save $name. Check the TV is still connected and the phone has space."
 
-    const val CANCELLED_SEND = "Cancelled. Nothing was left on the TV."
-    const val CANCELLED_SAVE = "Cancelled. Nothing was saved."
-    const val CANT_READ = "Couldn't read that file on your phone."
+    fun sendFailed(name: String) = L.t(
+        "Couldn't send $name. Check the TV is still connected and has space.",
+        "تعذّر إرسال $name. تأكد أن التلفزيون ما زال متصلاً وفيه مساحة.",
+    )
+    fun saveFailed(name: String) = L.t(
+        "Couldn't save $name. Check the TV is still connected and the phone has space.",
+        "تعذّر حفظ $name. تأكد أن التلفزيون ما زال متصلاً وأن في الهاتف مساحة.",
+    )
+
+    val CANCELLED_SEND get() = L.t("Cancelled. Nothing was left on the TV.", "تم الإلغاء. لم يُترك أي شيء على التلفزيون.")
+    val CANCELLED_SAVE get() = L.t("Cancelled. Nothing was saved.", "تم الإلغاء. لم يُحفظ أي شيء.")
+    val CANT_READ get() = L.t("Couldn't read that file on your phone.", "تعذّرت قراءة هذا الملف على هاتفك.")
     const val CANT_UNDO = "This version of Momani Smart Transfer can't undo that setting."
     const val FILES_LOST = "Couldn't read this folder. Check the TV is still connected."
 
