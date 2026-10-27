@@ -1,6 +1,8 @@
 name: CI
 
 on:
+  # Lets the "Run workflow" button and the GitHub API start a build by hand.
+  workflow_dispatch:
   pull_request:
   push:
     branches: [main, dev]
@@ -30,6 +32,16 @@ jobs:
 
       # build = assemble (debug + release) + unit tests + Android lint
       - run: ./gradlew build --console=plain
+
+      # The debug APK of every green build, downloadable from the run's page. Debug-signed, not for release.
+      - name: Upload debug APK
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: MomaniSmartTransfer-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Upload reports on failure
         if: failure()

@@ -101,7 +101,7 @@ data class Report(
 
 /** Builds the two reports: problems go to Tellyscope's tracker, an unsupported TV to cleanyourtv's. */
 object Reports {
-    const val OURS = "man15h/tellyscope"
+    const val OURS = "belalmomani/MomaniSmartTransfer"
     const val CLEANYOURTV = "Gathin23/cleanyourtv"
 
     /** The options of our device_report.yml "How did you connect?" dropdown, word for word. */
