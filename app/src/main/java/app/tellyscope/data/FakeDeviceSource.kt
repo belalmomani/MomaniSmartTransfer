@@ -125,6 +125,10 @@ class FakeDeviceSource(
 
     override suspend fun reconnect(deviceId: String) = Unit
 
+    override suspend fun setFavorite(deviceId: String, favorite: Boolean) {
+        remembered[deviceId]?.let { remembered[deviceId] = it.copy(favorite = favorite) }
+    }
+
     override suspend fun rename(deviceId: String, name: String?) {
         remembered[deviceId]?.let { remembered[deviceId] = it.copy(nickname = name?.trim()?.ifEmpty { null }) }
     }

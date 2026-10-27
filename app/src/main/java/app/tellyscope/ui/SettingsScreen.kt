@@ -83,6 +83,7 @@ fun SettingsScreen(
     keyHaptics: Boolean = true,
     onKeyHaptics: (Boolean) -> Unit = {},
     onReport: () -> Unit = {},
+    onTransferLog: () -> Unit = {},
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     var editing by rememberSaveable { mutableStateOf(false) }
@@ -106,6 +107,20 @@ fun SettingsScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            item {
+                Card(
+                    Modifier.fillMaxWidth().clickable(onClick = onTransferLog),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text("Transfer log", style = MaterialTheme.typography.titleSmall)
+                        Text(
+                            "Every file you sent to a TV or saved to your phone, with what happened to it.",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+            }
             item {
                 Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
                     if (checkUpdates != null) Row(

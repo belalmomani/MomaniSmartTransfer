@@ -43,6 +43,7 @@ import app.tellyscope.data.AdbDeviceSource
 import app.tellyscope.data.AndroidPhoneStorage
 import app.tellyscope.data.FakeDeviceSource
 import app.tellyscope.data.FoldBook
+import app.tellyscope.data.TransferLog
 import app.tellyscope.data.KeyHaptics
 import app.tellyscope.data.UpdateCheck
 import app.tellyscope.ui.AccessActions
@@ -60,6 +61,7 @@ import app.tellyscope.ui.ReportKind
 import app.tellyscope.ui.ReportScreen
 import app.tellyscope.ui.ScanScreen
 import app.tellyscope.ui.SettingsScreen
+import app.tellyscope.ui.TransferLogScreen
 import app.tellyscope.ui.TellyscopeViewModel
 import app.tellyscope.ui.UpdateDialog
 import app.tellyscope.ui.WelcomeScreen
@@ -101,6 +103,8 @@ class MainActivity : ComponentActivity() {
                                         AndroidPhoneStorage(applicationContext),
                                         updates = if (scenario != null) null else updateCheck(),
                                         folds = FoldBook(File(filesDir, "folds.properties")),
+                                        // Not in screenshots: the fake source has no real transfers to remember.
+                                        transferLog = if (scenario != null) null else TransferLog(File(filesDir, "transfers.tsv")),
                                         keyHaptics = KeyHaptics(File(filesDir, "remote.properties")),
                                         appFacts = AppFacts(installedVersion(), "${Build.MANUFACTURER} ${Build.MODEL}, Android ${Build.VERSION.RELEASE}"),
                                     )
@@ -174,6 +178,7 @@ fun TellyscopeApp(vm: TellyscopeViewModel) {
     var advanced by rememberSaveable { mutableStateOf(false) }
     var debloat by rememberSaveable { mutableStateOf(false) }
     var settings by rememberSaveable { mutableStateOf(false) }
+    var transferLog by rememberSaveable { mutableStateOf(false) }
     var access by rememberSaveable { mutableStateOf(false) }
 
     // "*/*": file managers label .apks and .xapk bundles inconsistently, so a narrower type would grey them out.
@@ -192,7 +197,7 @@ fun TellyscopeApp(vm: TellyscopeViewModel) {
     Snackbars(snackbar, vm.done, vm.notice, vm::doneShown, vm::noticeShown) { vm.undo(it.entry, it.deviceId) }
 
     // A newly connected TV becomes the selection; leave the add flow then, not on tap.
-    LaunchedEffect(state.selectedId) { adding = false; remote = false; advanced = false; debloat = false; settings = false; access = false }
+    LaunchedEffect(state.selectedId) { adding = false; remote = false; advanced = false; debloat = false; settings = false; transferLog = false; access = false }
 
     if (state.selected == null || adding) {
         BackHandler(enabled = adding) { adding = false }
@@ -242,6 +247,10 @@ fun TellyscopeApp(vm: TellyscopeViewModel) {
         // A removal started from the warning opens this screen too, and back steps out of it first.
         BackHandler { if (state.device.removal != null) vm.closeRemoval() else access = false }
         AccessScreen(state, accessActions(vm) { access = false }, snackbar = snackbar)
+    } else if (transferLog) {
+        BackHandler { transferLog = false }
+        val records by vm.transfers.collectAsStateWithLifecycle()
+        TransferLogScreen(records, onDelete = vm::deleteTransfer, onClear = vm::clearTransfers, back = { transferLog = false })
     } else if (settings) {
         BackHandler { settings = false }
         SettingsScreen(
@@ -253,6 +262,7 @@ fun TellyscopeApp(vm: TellyscopeViewModel) {
             keyHaptics = state.keyHaptics,
             onKeyHaptics = vm::setKeyHaptics,
             onReport = { vm.openReport(ReportKind.Problem) },
+            onTransferLog = { transferLog = true },
             back = { settings = false },
             snackbar = snackbar,
         )
@@ -287,6 +297,7 @@ fun TellyscopeApp(vm: TellyscopeViewModel) {
                 reconnect = { state.selectedId?.let(vm::reconnect) },
                 forget = vm::forget,
                 rename = vm::rename,
+                favorite = vm::favorite,
                 restoreAll = vm::restoreAll,
                 pickApp = { pickApp.launch(arrayOf("*/*")) },
                 allowDowngrade = vm::allowDowngrade,

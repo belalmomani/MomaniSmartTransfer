@@ -23,6 +23,11 @@ import app.tellyscope.adb.TvFile
 import app.tellyscope.adb.TvFolder
 import app.tellyscope.adb.Tweak
 import app.tellyscope.adb.installKind
+import app.tellyscope.data.PhoneFile
+import app.tellyscope.data.TransferCheck
+import app.tellyscope.data.TransferLog
+import app.tellyscope.data.TransferRecord
+import app.tellyscope.data.TransferStatus
 import app.tellyscope.data.Action
 import app.tellyscope.data.AppInfo
 import app.tellyscope.data.ConnectResult
@@ -280,6 +285,8 @@ class TellyscopeViewModel(
     private val clock: () -> Long = System::currentTimeMillis,
     private val updates: UpdateCheck? = null,
     private val folds: FoldBook? = null,
+    /** Where finished copies are remembered; null keeps no log (screenshots). */
+    private val transferLog: TransferLog? = null,
     private val keyHaptics: KeyHaptics? = null,
     /** This build and phone, for reports. */
     private val appFacts: AppFacts = AppFacts("unknown", "unknown phone"),
@@ -291,6 +298,10 @@ class TellyscopeViewModel(
     /** One-shot "done, undo?" messages for the snackbar, with the TV they happened on. */
     private val _done = MutableStateFlow<Done?>(null)
     val done: StateFlow<Done?> = _done.asStateFlow()
+
+    /** Every copy that ended, newest first. */
+    private val _transfers = MutableStateFlow(transferLog?.all().orEmpty())
+    val transfers: StateFlow<List<TransferRecord>> = _transfers.asStateFlow()
 
     /** One-shot snackbar lines: the TV refused, went away mid-action, or a restore or copy finished. */
     private val _notice = MutableStateFlow<String?>(null)
@@ -535,6 +546,13 @@ class TellyscopeViewModel(
     fun rename(id: String, name: String?) {
         viewModelScope.launch {
             source.rename(id, name)
+            _state.update { it.copy(devices = source.known()) }
+        }
+    }
+
+    fun favorite(id: String, on: Boolean) {
+        viewModelScope.launch {
+            source.setFavorite(id, on)
             _state.update { it.copy(devices = source.known()) }
         }
     }
@@ -816,17 +834,23 @@ class TellyscopeViewModel(
             var lastName = ""
             var lastSavedAs = ""
             var lastIntegrity: Integrity? = null
+            // The file in flight, so a cancel can be logged against it.
+            var current: PhoneFile? = null
+            var currentStart = 0L
             try {
                 for ((i, uri) in uris.withIndex()) {
                     val file = try {
                         storage.open(uri)
                     } catch (e: CancellationException) {
                         throw e
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
                         failed++
+                        logTransfer(id, true, folder, uri.lastPathSegment ?: "file", null, null, clock(), TransferStatus.FAILED, "couldn't read the file on the phone")
                         if (uris.size == 1) _notice.value = Copy.CANT_READ
                         continue
                     }
+                    current = file
+                    currentStart = clock()
                     setTransfer(id, TransferUi(file.name, toTv = true, folder = folder, index = i + 1, count = uris.size, startedAt = System.currentTimeMillis()))
                     try {
                         val r = file.source.use { src ->
@@ -841,14 +865,25 @@ class TellyscopeViewModel(
                             is Integrity.Unchecked -> unchecked++
                             else -> {}
                         }
+                        val (check, sha) = when (val c = r.integrity) {
+                            is Integrity.Verified -> TransferCheck.VERIFIED to c.sha256
+                            is Integrity.Mismatch -> TransferCheck.MISMATCH to c.local
+                            is Integrity.Unchecked -> TransferCheck.UNCHECKED to c.local
+                            null -> null to null
+                        }
+                        logTransfer(id, true, folder, file.name, r.savedAs.takeIf { it != file.name }, file.size, currentStart, TransferStatus.DONE, null, check, sha)
+                        current = null
                     } catch (e: CancellationException) {
                         throw e
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
                         failed++
+                        logTransfer(id, true, folder, file.name, null, file.size, currentStart, TransferStatus.FAILED, e.message?.take(200) ?: e::class.simpleName)
+                        current = null
                         if (uris.size == 1) _notice.value = Copy.sendFailed(file.name)
                     }
                 }
             } catch (e: CancellationException) {
+                current?.let { logTransfer(id, true, folder, it.name, null, it.size, currentStart, TransferStatus.CANCELLED) }
                 _notice.value = Copy.cancelledQueue(sent)
                 throw e
             } finally {
@@ -862,6 +897,27 @@ class TellyscopeViewModel(
             }
             if (sent > 0) loadFiles()
         }
+    }
+
+    private fun deviceLabel(id: String): String = _state.value.devices.firstOrNull { it.id == id }?.let { d -> d.nickname ?: d.model ?: id } ?: id
+
+    private fun logTransfer(
+        deviceId: String, toTv: Boolean, folder: TvFolder, fileName: String, savedAs: String?, size: Long?,
+        startedAt: Long, status: TransferStatus, error: String? = null, check: TransferCheck? = null, sha256: String? = null,
+    ) {
+        val log = transferLog ?: return
+        log.add(TransferRecord(0, deviceId, deviceLabel(deviceId), toTv, folder.path, fileName, savedAs, size, startedAt, clock(), status, error, check, sha256))
+        _transfers.value = log.all()
+    }
+
+    fun deleteTransfer(id: Long) {
+        transferLog?.remove(id)
+        _transfers.value = transferLog?.all().orEmpty()
+    }
+
+    fun clearTransfers() {
+        transferLog?.clear()
+        _transfers.value = emptyList()
     }
 
     /** The file whose "save as" picker is open. Kept here so it survives the activity being recreated behind the picker. */
@@ -883,19 +939,23 @@ class TellyscopeViewModel(
         val id = _state.value.selectedId ?: return
         val storage = storage ?: return
         val folder = _state.value.device.files.folder
-        setTransfer(id, TransferUi(file.name, toTv = false, folder = folder, progress = Progress(0, file.size)))
+        setTransfer(id, TransferUi(file.name, toTv = false, folder = folder, progress = Progress(0, file.size), startedAt = System.currentTimeMillis()))
         transferJobs[id] = viewModelScope.launch {
+            val started = clock()
             try {
                 storage.create(uri).use { sink ->
                     source.pull(id, folder, file, sink) { p -> updateTransfer(id) { it.copy(progress = p) } }
                 }
+                logTransfer(id, false, folder, file.name, null, file.size, started, TransferStatus.DONE)
                 _notice.value = Copy.saved(file.name)
             } catch (e: CancellationException) {
                 storage.delete(uri)
+                logTransfer(id, false, folder, file.name, null, file.size, started, TransferStatus.CANCELLED)
                 _notice.value = Copy.CANCELLED_SAVE
                 throw e
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 storage.delete(uri)
+                logTransfer(id, false, folder, file.name, null, file.size, started, TransferStatus.FAILED, e.message?.take(200) ?: e::class.simpleName)
                 _notice.value = Copy.saveFailed(file.name)
             } finally {
                 setTransfer(id, null)

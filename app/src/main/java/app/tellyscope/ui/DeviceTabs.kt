@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Badge
@@ -428,6 +429,11 @@ private fun AppMenu(state: UiState, actions: DeviceActions) {
                 }
             }
             MenuBlock {
+                DropdownMenuItem(
+                    text = { Text(if (device.favorite) "Remove from favorites" else "Add to favorites") },
+                    leadingIcon = { Icon(Icons.Default.Star, null) },
+                    onClick = { open = false; actions.favorite(device.id, !device.favorite) },
+                )
                 DropdownMenuItem(text = { Text("Rename this TV") }, leadingIcon = { Icon(Icons.Default.Edit, null) }, onClick = { open = false; renaming = true })
                 DropdownMenuItem(text = { Text("Forget this TV") }, leadingIcon = { Icon(Icons.Default.Delete, null) }, onClick = { open = false; forgetting = true })
                 DropdownMenuItem(

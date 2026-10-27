@@ -95,6 +95,8 @@ class AdbDeviceSource(context: Context) : DeviceSource {
     private val pairingPorts = ConcurrentHashMap<String, Int>()
     private val book = HistoryBook(File(appContext.filesDir, "history.tsv"))
     private val names = NameBook(File(appContext.filesDir, "names.tsv"))
+    /** Starred TVs, keyed like [names]; the value is only a marker. */
+    private val favorites = NameBook(File(appContext.filesDir, "favorites.tsv"))
     private val docks = DockBook(File(appContext.filesDir, "docks.tsv"))
     private val mine = MineBook(File(appContext.filesDir, "mine.tsv"))
     /** Last label seen per package, so history entries read like the app list. */
@@ -197,6 +199,11 @@ class AdbDeviceSource(context: Context) : DeviceSource {
     override suspend fun rename(deviceId: String, name: String?) {
         restored.await()
         names.set(key(deviceId), name)
+    }
+
+    override suspend fun setFavorite(deviceId: String, favorite: Boolean) {
+        restored.await()
+        favorites.set(key(deviceId), if (favorite) "1" else null)
     }
 
     override suspend fun forget(deviceId: String) {
@@ -715,6 +722,7 @@ class AdbDeviceSource(context: Context) : DeviceSource {
         if (keys.put(deviceId, key) != key) {
             book.rekey(deviceId, key)
             names.rekey(deviceId, key)
+            favorites.rekey(deviceId, key)
             docks.rekey(deviceId, key)
             mine.rekey(deviceId, key)
             remember(deviceId)
@@ -772,6 +780,7 @@ class AdbDeviceSource(context: Context) : DeviceSource {
             android = stats?.androidVersion ?: saved[id]?.lastKnown?.android,
             lastSeen = link?.lastSeenMillis ?: saved[id]?.lastSeen,
             nickname = names[keys[id] ?: id],
+            favorite = favorites[keys[id] ?: id] != null,
             brand = stats?.brand ?: saved[id]?.lastKnown?.brand,
             lastKnown = saved[id]?.lastKnown,
         )

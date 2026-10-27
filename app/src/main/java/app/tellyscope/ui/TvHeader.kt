@@ -265,7 +265,8 @@ private fun TvChips(state: UiState, actions: DeviceActions) {
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        if (state.devices.size > 1) state.devices.forEach { d ->
+        // Favorites first; the sort is stable, so the rest keep their order.
+        if (state.devices.size > 1) state.devices.sortedByDescending { it.favorite }.forEach { d ->
             FilterChip(
                 selected = d.id == state.selectedId,
                 onClick = { actions.select(d.id) },

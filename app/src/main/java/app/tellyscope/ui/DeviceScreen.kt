@@ -78,6 +78,8 @@ data class DeviceActions(
     val reconnect: () -> Unit = {},
     val forget: (String) -> Unit = {},
     val rename: (String, String?) -> Unit = { _, _ -> },
+    /** Stars or unstars a TV. */
+    val favorite: (String, Boolean) -> Unit = { _, _ -> },
     val restoreAll: () -> Unit = {},
     /** Opens the system picker for an APK, split APKs or a bundle. */
     val pickApp: () -> Unit = {},

@@ -51,6 +51,8 @@ data class Device(
     val brand: String? = null,
     /** What the TV last reported, kept until Forget; as of [lastSeen]. Null before it ever answered. */
     val lastKnown: LastKnown? = null,
+    /** Starred by the user: listed first, and it stays starred when the TV's address changes. */
+    val favorite: Boolean = false,
 )
 
 /**

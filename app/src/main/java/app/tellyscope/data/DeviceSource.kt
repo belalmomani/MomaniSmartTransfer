@@ -49,6 +49,9 @@ interface DeviceSource {
     /** The user's own name for a TV; blank goes back to the network name. Kept per [historyKey]. */
     suspend fun rename(deviceId: String, name: String?)
 
+    /** Stars or unstars a TV. Kept on the phone only. */
+    suspend fun setFavorite(deviceId: String, favorite: Boolean) {}
+
     /** Stop reconnecting to a TV and drop it from the remembered list. */
     suspend fun forget(deviceId: String)
 
