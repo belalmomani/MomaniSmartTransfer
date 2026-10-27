@@ -1,0 +1,109 @@
+// SPDX-License-Identifier: GPL-3.0-only
+package app.tellyscope.adb
+
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import java.io.IOException
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+
+class RemoteTest {
+
+    @Test fun keysSendTheirCode() = runTest {
+        val sh = FakeShell()
+        assertTrue(Remote(sh).press(RemoteKey.DOWN))
+        assertTrue(Remote(sh).press(RemoteKey.MUTE))
+        assertEquals(listOf("input keyevent 20", "input keyevent 164"), sh.ran)
+    }
+
+    @Test fun keysGoThroughTheHelperWhileItRuns() = runBlocking { // see KeyHelperTest
+        val sh = FakeShell().apply { execOutput = "ready\n1\n" }
+        assertTrue(Remote(sh, KeyHelper(sh, byteArrayOf(1))).press(RemoteKey.LEFT))
+        assertEquals("21\n", sh.execInput.readUtf8())
+        assertTrue(sh.ran.none { it.startsWith("input") })
+    }
+
+    @Test fun textGoesThroughTheHelperWhileItRuns() = runBlocking { // see KeyHelperTest
+        val sh = FakeShell().apply { execOutput = "ready\n1\n" }
+        assertTrue(Remote(sh, KeyHelper(sh, byteArrayOf(1))).type("hello tv"))
+        assertEquals("thello tv\n", sh.execInput.readUtf8())
+        assertTrue(sh.ran.none { it.startsWith("input") })
+    }
+
+    @Test fun textFallsBackToInputWhenTheHelperCannotStart() = runBlocking { // see KeyHelperTest
+        val sh = FakeShell().apply { execOutput = "" }
+        assertTrue(Remote(sh, KeyHelper(sh, byteArrayOf(1))).type("hi"))
+        assertEquals(Remote.typeCommand("hi"), sh.ran.last())
+    }
+
+    @Test fun keysFallBackToInputWhenTheHelperCannotStart() = runBlocking { // see KeyHelperTest
+        val sh = FakeShell().apply { execOutput = "" }
+        assertTrue(Remote(sh, KeyHelper(sh, byteArrayOf(1))).press(RemoteKey.HOME))
+        assertEquals("input keyevent 3", sh.ran.last())
+    }
+
+    @Test fun keyRefusedByTheTvIsFalse() = runTest {
+        val sh = FakeShell(mapOf("input keyevent" to ShellResult("Error: Unknown command", 1)))
+        assertFalse(Remote(sh).press(RemoteKey.HOME))
+    }
+
+    @Test fun spacesBecomePercentS() {
+        assertEquals("input text 'star%swars'", Remote.typeCommand("star wars"))
+    }
+
+    @Test fun percentBeforeASpaceStillTypesBoth() {
+        // input text only rewrites "%s"; the leading % of "%%s" stays a plain %.
+        assertEquals("input text '50%%soff'", Remote.typeCommand("50% off"))
+    }
+
+    @Test fun shellCharactersStayInsideTheQuotes() {
+        assertEquals("input text '\$(reboot);`id`&&\"x\"|\\'", Remote.typeCommand("\$(reboot);`id`&&\"x\"|\\"))
+    }
+
+    @Test fun singleQuoteIsClosedEscapedAndReopened() {
+        assertEquals("input text 'it'\\''s'", Remote.typeCommand("it's"))
+    }
+
+    @Test fun refusesWhatInputTextCannotType() {
+        listOf("", "café", "line\nbreak", "tab\there", "emoji 🙂", "100%sure", "x".repeat(Remote.MAX_TEXT + 1))
+            .forEach { assertFalse(Remote.typeable(it), it) }
+        assertTrue(Remote.typeable("x".repeat(Remote.MAX_TEXT)))
+        assertFailsWith<IllegalArgumentException> { Remote.typeCommand("café") }
+    }
+
+    @Test fun typeRunsTheQuotedCommand() = runTest {
+        val sh = FakeShell()
+        assertTrue(Remote(sh).type("hello there"))
+        assertEquals(listOf("input text 'hello%sthere'"), sh.ran)
+    }
+
+    @Test fun rebootUsesTheAdbService() = runTest {
+        val sh = FakeShell()
+        assertTrue(Remote(sh).reboot())
+        assertTrue(sh.rebooted)
+        assertTrue(sh.ran.isEmpty())
+    }
+
+    @Test fun refusedServiceFallsBackToSvc() = runTest {
+        val sh = FakeShell().apply { rebootFails = IllegalStateException("closed") }
+        assertTrue(Remote(sh).reboot())
+        assertEquals(listOf("svc power reboot 2>&1"), sh.ran)
+    }
+
+    @Test fun svcSayingNoIsFalse() = runTest {
+        val sh = FakeShell(mapOf("svc power" to ShellResult("Failed to reboot: permission denied\n", 0)))
+            .apply { rebootFails = IllegalStateException("closed") }
+        assertFalse(Remote(sh).reboot())
+    }
+
+    @Test fun linkDroppingDuringFallbackCountsAsRestarting() = runTest {
+        val sh = FakeShell().apply {
+            rebootFails = IllegalStateException("closed")
+            failWith = IOException("connection reset")
+        }
+        assertTrue(Remote(sh).reboot())
+    }
+}

@@ -1,0 +1,98 @@
+// SPDX-License-Identifier: GPL-3.0-only
+package app.tellyscope.adb
+
+import kotlinx.coroutines.CancellationException
+
+/**
+ * The TV's remote. Keys are a fixed list of Android key codes, so nothing the user does reaches
+ * the shell line except text, which [typeCommand] quotes. [repeats] keys repeat while held.
+ */
+enum class RemoteKey(val code: Int, val repeats: Boolean = false) {
+    UP(19, repeats = true),
+    DOWN(20, repeats = true),
+    LEFT(21, repeats = true),
+    RIGHT(22, repeats = true),
+    OK(23),
+    BACK(4),
+    HOME(3),
+    MENU(82),
+    PLAY_PAUSE(85),
+    VOLUME_UP(24, repeats = true),
+    VOLUME_DOWN(25, repeats = true),
+    MUTE(164),
+}
+
+class Remote(private val session: AdbSession, private val keys: KeyHelper? = null) {
+
+    /**
+     * False when the TV answered with an error. Throws if the link is gone. Goes through [keys]
+     * while its helper runs, and `input keyevent` when it can't.
+     */
+    suspend fun press(key: RemoteKey): Boolean =
+        keys?.press(key.code) ?: (session.shell("input keyevent ${key.code}").exitCode == 0)
+
+    /**
+     * Opens the TV's own system update screen. Some builds have none, and older `am` reports a
+     * missing screen in its output with exit code 0, so both are checked.
+     */
+    suspend fun openUpdates(): Boolean {
+        val r = session.shell("am start -a android.settings.SYSTEM_UPDATE_SETTINGS 2>&1")
+        return r.exitCode == 0 && !r.output.contains("Error")
+    }
+
+    /** Types [text] into whatever box has focus on the TV, through [keys] like [press]. Check [typeable] first. */
+    suspend fun type(text: String): Boolean = keys?.type(text) ?: (session.shell(typeCommand(text)).exitCode == 0)
+
+    /**
+     * Empties the focused text box on the TV. Only the key helper can (`input` has no Ctrl+A on
+     * older Android): false when it isn't running or the TV refused. Throws if the link is gone.
+     */
+    suspend fun clearText(): Boolean = keys?.clear() ?: false
+
+    /**
+     * Turns the TV's picture off or back on, leaving the TV awake so the link stays up. Only the
+     * key helper can: false when it isn't running or the TV refused. Throws if the link is gone.
+     */
+    suspend fun screen(on: Boolean): Boolean = keys?.screen(on) ?: false
+
+    /**
+     * Restarts the TV. adbd's `reboot:` service works for the shell user on stock builds; where a
+     * build refuses it, `svc power reboot` goes through the power service instead. Returns false
+     * only when the TV said no. A link that drops on the way counts as restarting.
+     */
+    suspend fun reboot(): Boolean {
+        try {
+            session.reboot()
+            return true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            // Refused, or the link went: the fallback tells which.
+        }
+        val r = try {
+            session.shell("svc power reboot 2>&1")
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            return true
+        }
+        return r.exitCode == 0 && r.output.isBlank()
+    }
+
+    companion object {
+        const val MAX_TEXT = 200
+
+        /**
+         * What `input text` can type: printable ASCII only (it has no key for anything else), and
+         * never `%s`, which it reads as a space.
+         */
+        fun typeable(text: String): Boolean =
+            text.isNotEmpty() && text.length <= MAX_TEXT && text.all { it in ' '..'~' } && "%s" !in text
+
+        /** `input text` reads `%s` as a space, and the whole thing is single-quoted for the shell. */
+        fun typeCommand(text: String): String {
+            require(typeable(text)) { "input text can't type this" }
+            return "input text " + shellQuote(text.replace(" ", "%s"))
+        }
+    }
+}
