@@ -95,9 +95,9 @@ fun SettingsScreen(
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text(L.t("Settings", "الإعدادات")) },
                 navigationIcon = {
-                    IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to the TV's page") }
+                    IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = L.t("Back to the TV's page", "العودة إلى صفحة التلفزيون")) }
                 },
             )
         },
@@ -130,10 +130,10 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
-                            Text("Check for updates", style = MaterialTheme.typography.titleSmall)
+                            Text(L.t("Check for updates", "التحقق من التحديثات"), style = MaterialTheme.typography.titleSmall)
                             Text(
-                                (if (alphaBuild) "Every 5 minutes on alpha builds" else "Every 30 minutes") +
-                                    ", ask GitHub whether a newer Momani Smart Transfer is out. Nothing is downloaded.",
+                                (if (alphaBuild) L.t("Every 5 minutes on alpha builds", "كل 5 دقائق في النسخ التجريبية") else L.t("Every 30 minutes", "كل 30 دقيقة")) +
+                                    L.t(", ask GitHub whether a newer Momani Smart Transfer is out. Nothing is downloaded.", "، يسأل GitHub هل صدرت نسخة أحدث من Momani Smart Transfer. لا يُنزَّل شيء."),
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                         }
@@ -148,8 +148,8 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
-                            Text("Vibrate on key press", style = MaterialTheme.typography.titleSmall)
-                            Text("A short tick for each key on the Remote.", style = MaterialTheme.typography.bodyMedium)
+                            Text(L.t("Vibrate on key press", "اهتزاز عند الضغط على الأزرار"), style = MaterialTheme.typography.titleSmall)
+                            Text(L.t("A short tick for each key on the Remote.", "نقرة قصيرة لكل زر في جهاز التحكم."), style = MaterialTheme.typography.bodyMedium)
                         }
                         Spacer(Modifier.width(16.dp))
                         Switch(checked = keyHaptics, onCheckedChange = null)
@@ -159,8 +159,8 @@ fun SettingsScreen(
                         Icon(BugReport, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.width(16.dp))
                         Column(Modifier.weight(1f)) {
-                            Text("Report a problem", style = MaterialTheme.typography.titleSmall)
-                            Text("Opens an issue on Momani Smart Transfer\u2019s GitHub. You see the text first.", style = MaterialTheme.typography.bodyMedium)
+                            Text(L.t("Report a problem", "الإبلاغ عن مشكلة"), style = MaterialTheme.typography.titleSmall)
+                            Text(L.t("Opens an issue on Momani Smart Transfer\u2019s GitHub. You see the text first.", "يفتح بلاغاً على GitHub الخاص بـ Momani Smart Transfer. ترى النص أولاً."), style = MaterialTheme.typography.bodyMedium)
                         }
                         Spacer(Modifier.width(16.dp))
                         Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)

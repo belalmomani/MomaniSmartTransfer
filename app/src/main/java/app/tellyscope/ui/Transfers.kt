@@ -78,7 +78,7 @@ fun ActionTiles(actions: DeviceActions, count: Int, todo: Boolean, disabling: Bo
             DropdownMenu(choosing, onDismissRequest = { choosing = false }) {
                 TvFolder.entries.forEach { f ->
                     DropdownMenuItem(
-                        text = { Text("To ${Copy.folder(f)}") },
+                        text = { Text(L.t("To ${Copy.folder(f)}", "إلى ${Copy.folder(f)}")) },
                         onClick = { choosing = false; actions.pickFile(f) },
                     )
                 }
@@ -153,7 +153,7 @@ fun FilesBlock(files: FilesUi, now: Long, actions: DeviceActions) {
         else -> {
             list.forEach { f -> FileRow(f, now) { actions.saveFile(f) } }
             // Only with files to tap; an empty folder shows its own page instead.
-            if (list.isNotEmpty()) Muted("Tap a file to save a copy on your phone.")
+            if (list.isNotEmpty()) Muted(L.t("Tap a file to save a copy on your phone.", "المس ملفاً لحفظ نسخة منه على هاتفك."))
         }
     }
 }
@@ -172,7 +172,7 @@ private fun FileRow(f: TvFile, now: Long, onSave: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        TextButton(onClick = onSave) { Text("Save") }
+        TextButton(onClick = onSave) { Text(L.t("Save", "حفظ")) }
     }
 }
 
@@ -197,8 +197,8 @@ fun SideloadDialog(s: SideloadUi, actions: DeviceActions) {
         title = {
             Text(
                 when (s.step) {
-                    SideloadUi.Step.Reading -> "Reading the app"
-                    SideloadUi.Step.Failed -> app?.let { "Couldn't install ${it.label}" } ?: "Can't install that"
+                    SideloadUi.Step.Reading -> L.t("Reading the app", "جارٍ قراءة التطبيق")
+                    SideloadUi.Step.Failed -> app?.let { L.t("Couldn't install ${it.label}", "تعذّر تثبيت ${it.label}") } ?: L.t("Can't install that", "لا يمكن تثبيت هذا")
                     SideloadUi.Step.Installed -> Copy.installed(kind ?: InstallKind.NEW, app?.label.orEmpty())
                     else -> app?.label.orEmpty()
                 },
@@ -214,9 +214,9 @@ fun SideloadDialog(s: SideloadUi, actions: DeviceActions) {
                         Text(app.info.packageName, style = SmallNumber, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
                             listOfNotNull(
-                                "Version ${app.info.versionName ?: app.info.versionCode}",
+                                L.t("Version ${app.info.versionName ?: app.info.versionCode}", "الإصدار ${app.info.versionName ?: app.info.versionCode}"),
                                 Copy.bytes(app.sizeBytes),
-                                if (app.files.size > 1) "${app.files.size} parts" else null,
+                                if (app.files.size > 1) L.t("${app.files.size} parts", "${app.files.size} أجزاء") else null,
                             ).joinToString(" · "),
                             style = SmallNumber,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -244,7 +244,7 @@ fun SideloadDialog(s: SideloadUi, actions: DeviceActions) {
                         if (sending) LinearWavyProgressIndicator(progress = { f }, Modifier.fillMaxWidth())
                         else LinearWavyProgressIndicator(Modifier.fillMaxWidth())
                         Text(
-                            if (sending) "Sending to the TV · ${(f * 100).toInt()}%" else "Installing on the TV…",
+                            if (sending) L.t("Sending to the TV · ${(f * 100).toInt()}%", "جارٍ الإرسال إلى التلفزيون · ${(f * 100).toInt()}%") else L.t("Installing on the TV…", "جارٍ التثبيت على التلفزيون…"),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         Muted(Copy.INSTALL_KEEP_OPEN)
@@ -252,7 +252,7 @@ fun SideloadDialog(s: SideloadUi, actions: DeviceActions) {
                     SideloadUi.Step.Failed -> {
                         Text(s.error.orEmpty(), style = MaterialTheme.typography.bodyMedium)
                         s.detail?.takeIf { it.isNotBlank() }?.let {
-                            Text("The TV said: $it", style = SmallNumber, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 4, overflow = TextOverflow.Ellipsis)
+                            Text(L.t("The TV said: $it", "قال التلفزيون: $it"), style = SmallNumber, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 4, overflow = TextOverflow.Ellipsis)
                         }
                     }
                     else -> Unit
@@ -265,16 +265,16 @@ fun SideloadDialog(s: SideloadUi, actions: DeviceActions) {
                     onClick = actions.install,
                     enabled = kind != InstallKind.DOWNGRADE || s.allowDowngrade,
                 ) { Text(Copy.installButton(kind)) }
-                SideloadUi.Step.Installed -> Button(onClick = actions.openInstalled) { Text("Open on TV") }
-                SideloadUi.Step.Failed -> Button(onClick = actions.closeSideload) { Text("OK") }
+                SideloadUi.Step.Installed -> Button(onClick = actions.openInstalled) { Text(L.t("Open on TV", "فتح على التلفزيون")) }
+                SideloadUi.Step.Failed -> Button(onClick = actions.closeSideload) { Text(L.t("OK", "حسناً")) }
                 else -> Unit
             }
         },
         dismissButton = {
             when (s.step) {
-                SideloadUi.Step.Reading, SideloadUi.Step.Ready -> TextButton(onClick = actions.closeSideload) { Text("Cancel") }
-                SideloadUi.Step.Installed -> TextButton(onClick = actions.closeSideload) { Text("Done") }
-                SideloadUi.Step.Failed -> TextButton(onClick = { actions.reportInstall(s) }) { Text("Report a problem") }
+                SideloadUi.Step.Reading, SideloadUi.Step.Ready -> TextButton(onClick = actions.closeSideload) { Text(L.t("Cancel", "إلغاء")) }
+                SideloadUi.Step.Installed -> TextButton(onClick = actions.closeSideload) { Text(L.t("Done", "تم")) }
+                SideloadUi.Step.Failed -> TextButton(onClick = { actions.reportInstall(s) }) { Text(L.t("Report a problem", "الإبلاغ عن مشكلة")) }
                 else -> Unit
             }
         },

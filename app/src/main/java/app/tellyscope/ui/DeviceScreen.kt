@@ -149,7 +149,7 @@ internal fun SystemWidget(usedGb: Double?, totalGb: Double?, live: Snapshot?, as
             if (used != null && total != null) {
                 Row {
                     Text("Internal storage", Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("${Copy.gbOf(used, total)} used", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(L.t("${Copy.gbOf(used, total)} used", "${Copy.gbOf(used, total)} مستخدمة"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Copy.free(used, total)?.let { Text(it, style = MaterialTheme.typography.titleLarge) }
                 val full = used / total
@@ -182,10 +182,10 @@ private fun Vital(label: String, value: String, modifier: Modifier = Modifier) {
 fun UndoDisableDialog(entry: HistoryEntry, onDisable: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Disable ${entry.label}?") },
+        title = { Text(L.t("Disable ${entry.label}?", "تعطيل ${entry.label}؟")) },
         text = { Text(Copy.explain(Action.Disable, entry.label, entry.packageName)) },
         confirmButton = { Button(onClick = onDisable) { Text(Copy.confirm(Action.Disable)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(L.t("Cancel", "إلغاء")) } },
     )
 }
 
@@ -194,15 +194,14 @@ fun UndoDisableDialog(entry: HistoryEntry, onDisable: () -> Unit, onDismiss: () 
 fun RestoreDialog(count: Int, onRestore: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Turn $count ${if (count == 1) "app" else "apps"} back on?") },
+        title = { Text(L.t("Turn $count ${if (count == 1) "app" else "apps"} back on?", "إعادة تشغيل $count من التطبيقات؟")) },
         text = {
             Text(
-                "Turns back on every app Momani Smart Transfer disabled on this TV. " +
-                    "Apps that were already off before Momani Smart Transfer's first change stay off.",
+                L.t("Turns back on every app Momani Smart Transfer disabled on this TV. " + "Apps that were already off before Momani Smart Transfer's first change stay off.", "يعيد تشغيل كل تطبيق عطّله Momani Smart Transfer على هذا التلفزيون. التطبيقات التي كانت متوقفة قبل أول تغيير يجريه Momani Smart Transfer تبقى متوقفة."),
             )
         },
-        confirmButton = { Button(onClick = onRestore) { Text("Turn back on") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        confirmButton = { Button(onClick = onRestore) { Text(L.t("Turn back on", "إعادة التشغيل")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(L.t("Cancel", "إلغاء")) } },
     )
 }
 
@@ -223,10 +222,10 @@ fun RenameDialog(current: String, fallback: String, onSave: (String) -> Unit, on
     var text by rememberSaveable { mutableStateOf(current) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Rename this TV") },
+        title = { Text(L.t("Rename this TV", "إعادة تسمية هذا التلفزيون")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Only this phone sees the name. Nothing on the TV changes.")
+                Text(L.t("Only this phone sees the name. Nothing on the TV changes.", "هذا الاسم يظهر على هذا الهاتف فقط. لا يتغير شيء على التلفزيون."))
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it.take(app.tellyscope.data.NameBook.MAX_LENGTH) },
@@ -235,8 +234,8 @@ fun RenameDialog(current: String, fallback: String, onSave: (String) -> Unit, on
                 )
             }
         },
-        confirmButton = { Button(onClick = { onSave(text) }) { Text("Save") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        confirmButton = { Button(onClick = { onSave(text) }) { Text(L.t("Save", "حفظ")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(L.t("Cancel", "إلغاء")) } },
     )
 }
 
@@ -245,10 +244,10 @@ fun RenameDialog(current: String, fallback: String, onSave: (String) -> Unit, on
 fun ForgetDialog(name: String, onForget: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Forget $name?") },
-        text = { Text("Momani Smart Transfer stops reconnecting to it and removes it from this phone. Nothing on the TV changes. You can add it again from a scan.") },
-        confirmButton = { Button(onClick = onForget) { Text("Forget") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        title = { Text(L.t("Forget $name?", "نسيان $name؟")) },
+        text = { Text(L.t("Momani Smart Transfer stops reconnecting to it and removes it from this phone. Nothing on the TV changes. You can add it again from a scan.", "يتوقف Momani Smart Transfer عن إعادة الاتصال به ويزيله من هذا الهاتف. لا يتغير شيء على التلفزيون. يمكنك إضافته مجدداً بالبحث.")) },
+        confirmButton = { Button(onClick = onForget) { Text(L.t("Forget", "نسيان")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(L.t("Cancel", "إلغاء")) } },
     )
 }
 
@@ -273,12 +272,12 @@ internal fun NotAllowedCard(onConnect: () -> Unit) {
         ),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            CardTitle(Icons.Default.Warning, "The TV didn't allow this phone")
+            CardTitle(Icons.Default.Warning, L.t("The TV didn't allow this phone", "لم يسمح التلفزيون لهذا الهاتف"))
             Text(
-                "Its debugging access was turned off, reset, or denied. Momani Smart Transfer stopped asking so the TV isn't flooded with prompts.",
+                L.t("Its debugging access was turned off, reset, or denied. Momani Smart Transfer stopped asking so the TV isn't flooded with prompts.", "أُوقف وصول تصحيح الأخطاء أو أُعيد ضبطه أو رُفض. توقف Momani Smart Transfer عن الطلب حتى لا يمتلئ التلفزيون بالرسائل."),
                 style = MaterialTheme.typography.bodyMedium,
             )
-            Button(onClick = onConnect) { Text("Connect again") }
+            Button(onClick = onConnect) { Text(L.t("Connect again", "اتصل مجدداً")) }
             Text(
                 "Then press Allow on the TV, and tick \"Always allow from this computer\".",
                 style = MaterialTheme.typography.bodySmall,
@@ -307,14 +306,14 @@ internal fun OfflineCard(device: Device, now: Long, onReconnect: () -> Unit) {
     ) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                CardTitle(Icons.Default.Info, "Offline")
+                CardTitle(Icons.Default.Info, L.t("Offline", "غير متصل"))
                 Text(
-                    "Last seen ${device.lastSeen?.let { Copy.ago(it, now) } ?: "a while ago"}. It reconnects on its own when the TV is back on.",
+                    L.t("Last seen ${device.lastSeen?.let { Copy.ago(it, now) } ?: "a while ago"}. It reconnects on its own when the TV is back on.", "آخر ظهور: ${device.lastSeen?.let { Copy.ago(it, now) } ?: "منذ مدة"}. يعيد الاتصال تلقائياً عندما يعمل التلفزيون."),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
             Spacer(Modifier.width(12.dp))
-            FilledTonalButton(onClick = onReconnect) { Text("Reconnect") }
+            FilledTonalButton(onClick = onReconnect) { Text(L.t("Reconnect", "إعادة الاتصال")) }
         }
     }
 }
@@ -372,7 +371,7 @@ fun UninstallDialog(app: AppInfo, onUninstall: () -> Unit, onDismiss: () -> Unit
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
             ) { Text(Copy.confirm(Action.Uninstall)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(L.t("Cancel", "إلغاء")) } },
     )
 }
 
@@ -446,7 +445,7 @@ internal fun AppRow(
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = actions.confirm, enabled = !locked) { Text(Copy.confirm(proposed)) }
-                        TextButton(onClick = actions.cancel) { Text("Cancel") }
+                        TextButton(onClick = actions.cancel) { Text(L.t("Cancel", "إلغاء")) }
                     }
                 }
             }

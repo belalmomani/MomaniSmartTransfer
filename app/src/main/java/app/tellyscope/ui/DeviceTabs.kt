@@ -105,7 +105,16 @@ import app.tellyscope.data.Snapshot
 import app.tellyscope.data.Suggestions
 
 /** The TV page's destinations, one job each, in the bottom bar. */
-enum class TvTab(val label: String) { Overview("Overview"), Apps("Apps"), Files("Files"), Tweaks("Tweaks") }
+enum class TvTab(private val en: String, private val ar: String) {
+    Overview("Overview", "نظرة عامة"),
+    Apps("Apps", "التطبيقات"),
+    Files("Files", "الملفات"),
+    Tweaks("Tweaks", "التعديلات"),
+    ;
+
+    /** Read at each use: the language can change while the app runs. */
+    val label: String get() = L.t(en, ar)
+}
 
 private object TabIcons {
     val Apps = icon(
@@ -210,9 +219,9 @@ fun DeviceTabsScreen(
             // Each tab's main action as Material's extended FAB: the Remote on Overview, install on Apps, upload on Files.
             floatingActionButton = {
                 if (!offline) when (tab) {
-                    TvTab.Overview -> ExtendedFloatingActionButton(onClick = actions.remote, icon = { Icon(TileIcons.Remote, null) }, text = { Text("Remote") })
-                    TvTab.Apps -> ExtendedFloatingActionButton(onClick = actions.pickApp, icon = { Icon(Icons.Default.Add, null) }, text = { Text("Install app") })
-                    TvTab.Files -> ExtendedFloatingActionButton(onClick = { actions.pickFile(ui.files.folder) }, icon = { Icon(TileIcons.Upload, null) }, text = { Text("Upload files") })
+                    TvTab.Overview -> ExtendedFloatingActionButton(onClick = actions.remote, icon = { Icon(TileIcons.Remote, null) }, text = { Text(L.t("Remote", "جهاز التحكم")) })
+                    TvTab.Apps -> ExtendedFloatingActionButton(onClick = actions.pickApp, icon = { Icon(Icons.Default.Add, null) }, text = { Text(L.t("Install app", "تثبيت تطبيق")) })
+                    TvTab.Files -> ExtendedFloatingActionButton(onClick = { actions.pickFile(ui.files.folder) }, icon = { Icon(TileIcons.Upload, null) }, text = { Text(L.t("Upload files", "رفع ملفات")) })
                     else -> {}
                 }
             },
@@ -340,22 +349,22 @@ fun DeviceTabsScreen(
                         }
                         val folder = ui.files.folder
                         when {
-                            offline -> item { EmptyState(DeviceIcons.Tv, Copy.TV_OFFLINE, "Connect to the TV to see its files.") }
+                            offline -> item { EmptyState(DeviceIcons.Tv, Copy.TV_OFFLINE, L.t("Connect to the TV to see its files.", "اتصل بالتلفزيون لعرض ملفاته.")) }
                             ui.files.error == null && ui.files.list?.isEmpty() == true -> item {
                                 EmptyState(
                                     if (folder == TvFolder.MOVIES) TileIcons.Movie else TabIcons.Folder,
-                                    "Nothing in ${Copy.folder(folder)} yet",
-                                    "Files you send land here.",
+                                    L.t("Nothing in ${Copy.folder(folder)} yet", "لا يوجد شيء في ${Copy.folder(folder)} بعد"),
+                                    L.t("Files you send land here.", "الملفات التي ترسلها تظهر هنا."),
                                 )
                             }
                             else -> item { FilesBlock(ui.files, state.now, actions) }
                         }
                     }
                     TvTab.Tweaks -> {
-                        if (offline) item { Muted("Connect to the TV to change its settings.") }
+                        if (offline) item { Muted(L.t("Connect to the TV to change its settings.", "اتصل بالتلفزيون لتغيير إعداداته.")) }
                         else item { Panel(Copy.TWEAKS) { TweaksBlock(ui, actions) } }
                         item {
-                            Panel("Recent changes") {
+                            Panel(L.t("Recent changes", "آخر التغييرات")) {
                                 HistoryList(ui.history, state.now, actions.undo, restoring = ui.busy == RESTORING, onRestoreAll = actions.restoreAll, busy = ui.busy != null)
                             }
                         }
@@ -416,7 +425,7 @@ private fun AppMenu(state: UiState, actions: DeviceActions) {
         val others = state.device.access?.others.orEmpty().size
         IconButton(onClick = { open = true }) {
             // The access warning shows on ⋮ too, so it's there from every tab.
-            BadgedBox(badge = { if (others > 0) Badge() }) { Icon(Icons.Default.MoreVert, contentDescription = "More options") }
+            BadgedBox(badge = { if (others > 0) Badge() }) { Icon(Icons.Default.MoreVert, contentDescription = L.t("More options", "خيارات إضافية")) }
         }
         DropdownMenu(open, onDismissRequest = { open = false }, shape = MaterialTheme.shapes.large) {
             Row(Modifier.padding(start = 12.dp, end = 16.dp, top = 4.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -434,8 +443,8 @@ private fun AppMenu(state: UiState, actions: DeviceActions) {
                     leadingIcon = { Icon(Icons.Default.Star, null) },
                     onClick = { open = false; actions.favorite(device.id, !device.favorite) },
                 )
-                DropdownMenuItem(text = { Text("Rename this TV") }, leadingIcon = { Icon(Icons.Default.Edit, null) }, onClick = { open = false; renaming = true })
-                DropdownMenuItem(text = { Text("Forget this TV") }, leadingIcon = { Icon(Icons.Default.Delete, null) }, onClick = { open = false; forgetting = true })
+                DropdownMenuItem(text = { Text(L.t("Rename this TV", "إعادة تسمية هذا التلفزيون")) }, leadingIcon = { Icon(Icons.Default.Edit, null) }, onClick = { open = false; renaming = true })
+                DropdownMenuItem(text = { Text(L.t("Forget this TV", "نسيان هذا التلفزيون")) }, leadingIcon = { Icon(Icons.Default.Delete, null) }, onClick = { open = false; forgetting = true })
                 DropdownMenuItem(
                     text = {
                         Column {
@@ -448,12 +457,12 @@ private fun AppMenu(state: UiState, actions: DeviceActions) {
                     },
                     onClick = { open = false; actions.whoHasAccess() },
                 )
-                DropdownMenuItem(text = { Text("Advanced") }, leadingIcon = { Icon(Icons.Default.List, null) }, onClick = { open = false; actions.advanced() })
+                DropdownMenuItem(text = { Text(L.t("Advanced", "متقدم")) }, leadingIcon = { Icon(Icons.Default.List, null) }, onClick = { open = false; actions.advanced() })
             }
             Spacer(Modifier.height(4.dp))
             MenuBlock {
-                DropdownMenuItem(text = { Text("Settings") }, leadingIcon = { Icon(Icons.Default.Settings, null) }, onClick = { open = false; actions.settings() })
-                DropdownMenuItem(text = { Text("About & licences") }, leadingIcon = { Icon(Icons.Default.Info, null) }, onClick = { open = false; about = true })
+                DropdownMenuItem(text = { Text(L.t("Settings", "الإعدادات")) }, leadingIcon = { Icon(Icons.Default.Settings, null) }, onClick = { open = false; actions.settings() })
+                DropdownMenuItem(text = { Text(L.t("About & licences", "حول التطبيق والتراخيص")) }, leadingIcon = { Icon(Icons.Default.Info, null) }, onClick = { open = false; about = true })
             }
         }
     }
@@ -476,7 +485,7 @@ private fun SearchPill(enabled: Boolean, onClick: () -> Unit) {
         Row(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.width(16.dp))
-            Text("Search apps", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(L.t("Search apps", "ابحث في التطبيقات"), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -492,11 +501,11 @@ private fun SearchHeader(query: String, onQuery: (String) -> Unit, onClose: () -
     Column(Modifier.background(MaterialTheme.colorScheme.surface).statusBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp)) {
         Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onClose) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Close search") }
+                IconButton(onClick = onClose) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = L.t("Close search", "إغلاق البحث")) }
                 TextField(
                     value = query,
                     onValueChange = onQuery,
-                    placeholder = { Text("Search apps") },
+                    placeholder = { Text(L.t("Search apps", "ابحث في التطبيقات")) },
                     singleLine = true,
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
@@ -506,7 +515,7 @@ private fun SearchHeader(query: String, onQuery: (String) -> Unit, onClose: () -
                     ),
                     modifier = Modifier.weight(1f).focusRequester(focus),
                 )
-                if (query.isNotEmpty()) IconButton(onClick = { onQuery("") }) { Icon(Icons.Default.Close, contentDescription = "Clear search") }
+                if (query.isNotEmpty()) IconButton(onClick = { onQuery("") }) { Icon(Icons.Default.Close, contentDescription = L.t("Clear search", "مسح البحث")) }
             }
         }
     }
@@ -563,7 +572,7 @@ private fun SuggestedCard(lists: Suggestions?, d: DebloatState, offline: Boolean
                     Modifier.weight(1f),
                     style = MaterialTheme.typography.bodyLarge,
                 )
-                TextButton(onClick = onChanges) { Text("See changes") }
+                TextButton(onClick = onChanges) { Text(L.t("See changes", "عرض التغييرات")) }
             }
             if (d.back > 0) {
                 Text(
