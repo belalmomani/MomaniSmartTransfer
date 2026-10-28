@@ -48,8 +48,8 @@ fun WelcomeScreen(askLocalNetwork: Boolean, onContinue: () -> Unit, onSkip: () -
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TextButton(onClick = onSkip) { Text("Skip") }
-                Button(onClick = onContinue) { Text("Continue") }
+                TextButton(onClick = onSkip) { Text(L.t("Skip", "تخطي")) }
+                Button(onClick = onContinue) { Text(L.t("Continue", "متابعة")) }
             }
         },
     ) { pad ->
@@ -65,9 +65,9 @@ fun WelcomeScreen(askLocalNetwork: Boolean, onContinue: () -> Unit, onSkip: () -
                 // The foreground keeps its art inside the adaptive-icon safe zone; oversize it so the art fills the tile.
                 Image(painterResource(R.drawable.ic_launcher_foreground), contentDescription = null, Modifier.requiredSize(108.dp))
             }
-            Text("Welcome to Momani Smart Transfer", style = MaterialTheme.typography.headlineMedium)
+            Text(L.t("Welcome to Momani Smart Transfer", "مرحباً بك في Momani Smart Transfer"), style = MaterialTheme.typography.headlineMedium)
             Text(
-                "See what's running on your Android TV, and turn off the apps you don't need. All from your phone, over Wi-Fi.",
+                L.t("See what's running on your Android TV, and turn off the apps you don't need. All from your phone, over Wi-Fi.", "شاهد ما يعمل على تلفزيون Android الخاص بك، وأوقف التطبيقات التي لا تحتاجها. كل ذلك من هاتفك عبر الواي فاي."),
                 style = MaterialTheme.typography.bodyLarge,
             )
             Card(
@@ -86,7 +86,7 @@ fun WelcomeScreen(askLocalNetwork: Boolean, onContinue: () -> Unit, onSkip: () -
             }
             if (askLocalNetwork) {
                 Text(
-                    "Android asks before an app talks to other devices on your Wi-Fi. Momani Smart Transfer only connects to the TVs you pick.",
+                    L.t("Android asks before an app talks to other devices on your Wi-Fi. Momani Smart Transfer only connects to the TVs you pick.", "يسأل Android قبل أن يتواصل أي تطبيق مع الأجهزة الأخرى على شبكة الواي فاي. لا يتصل Momani Smart Transfer إلا بالتلفزيونات التي تختارها."),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -96,7 +96,7 @@ fun WelcomeScreen(askLocalNetwork: Boolean, onContinue: () -> Unit, onSkip: () -
 }
 
 private val steps = listOf(
-    "Turn on debugging on your TV. The next screen shows how for your brand.",
-    "Momani Smart Transfer finds the TV on your Wi-Fi.",
-    "Type the code the TV shows, or choose Allow when it asks.",
+    L.t("Turn on debugging on your TV. The next screen shows how for your brand.", "فعّل تصحيح الأخطاء (Debugging) على تلفزيونك. تعرض الشاشة التالية الطريقة لعلامة تلفزيونك."),
+    L.t("Momani Smart Transfer finds the TV on your Wi-Fi.", "يعثر Momani Smart Transfer على التلفزيون على شبكة الواي فاي."),
+    L.t("Type the code the TV shows, or choose Allow when it asks.", "اكتب الرمز الذي يعرضه التلفزيون، أو اختر «السماح» عندما يسأل."),
 )

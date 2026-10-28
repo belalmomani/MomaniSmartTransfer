@@ -19,6 +19,7 @@ until this file has a section for its version.
 - **New:** Speed and time left while sending.
 - **New:** Transfer log (Settings → Transfer log): search, filter, sort, details, remove an entry, clear. It never deletes the copied files.
 - **New:** Favorite TVs are listed first; star one from its menu.
+- **New:** Arabic for the welcome, connect, send and transfer-log screens (right-to-left); other screens are still English. Pick the language in Android's app language settings (Android 13+) or set the phone to Arabic.
 - **New:** Renamed to Momani Smart Transfer, a modified fork of Tellyscope 0.9.0 (new app ID com.momani.smarttransfer).
 
 ## 0.9.0 — 2026-10-26

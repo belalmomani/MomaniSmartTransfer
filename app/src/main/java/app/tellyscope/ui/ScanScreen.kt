@@ -57,7 +57,7 @@ import app.tellyscope.data.ScanHit
 import app.tellyscope.ui.theme.SmallNumber
 
 /**
- * "Add your TV": pick the brand, follow its steps one at a time, then pick the TV the scan found.
+ * L.t("Add your TV", "أضف تلفزيونك"): pick the brand, follow its steps one at a time, then pick the TV the scan found.
  * The scan runs from the start, so a TV that turns up early skips the steps it has proved done.
  * Connect opens that TV's own [ConnectScreen]; [phoneKey] is shown there for the Allow box.
  */
@@ -106,7 +106,7 @@ fun ScanScreen(
             TopAppBar(
                 title = {},
                 navigationIcon = {
-                    if (onBack != null) IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
+                    if (onBack != null) IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = L.t("Back", "رجوع")) }
                 },
             )
         },
@@ -117,14 +117,14 @@ fun ScanScreen(
             Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Text("Add your TV", style = MaterialTheme.typography.headlineMedium)
+            Text(L.t("Add your TV", "أضف تلفزيونك"), style = MaterialTheme.typography.headlineMedium)
             Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.secondaryContainer) {
                 Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Info, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
                     Spacer(Modifier.width(12.dp))
                     Text(
-                        if (scan.noLan) "You're not on Wi-Fi, so only TVs that announce themselves show up. Join your TV's Wi-Fi."
-                        else "Keep your phone and TV on the same Wi-Fi.",
+                        if (scan.noLan) L.t("You're not on Wi-Fi, so only TVs that announce themselves show up. Join your TV's Wi-Fi.", "أنت غير متصل بالواي فاي، فتظهر فقط التلفزيونات التي تعلن عن نفسها. اتصل بشبكة الواي فاي الخاصة بتلفزيونك.")
+                        else L.t("Keep your phone and TV on the same Wi-Fi.", "أبقِ هاتفك وتلفزيونك على شبكة الواي فاي نفسها."),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                     )
@@ -142,9 +142,9 @@ fun ScanScreen(
                 TextButton(onClick = { adding = true }) {
                     Icon(Icons.Default.Add, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Add by IP address")
+                    Text(L.t("Add by IP address", "إضافة بعنوان IP"))
                 }
-                TextButton(onClick = { help = true }) { Text("Can't find your TV?") }
+                TextButton(onClick = { help = true }) { Text(L.t("Can't find your TV?", "لا تجد تلفزيونك؟")) }
             }
         }
     }
@@ -178,7 +178,7 @@ private fun FoundTvs(scan: ScanUi, onRescan: () -> Unit, onPick: (ScanHit) -> Un
                     Icon(DeviceIcons.Tv, null, Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.width(16.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(hit.hostname ?: hit.maker ?: "Android device", style = MaterialTheme.typography.titleMedium)
+                        Text(hit.hostname ?: hit.maker ?: L.t("Android device", "جهاز Android"), style = MaterialTheme.typography.titleMedium)
                         Text(
                             listOfNotNull(hit.maker, hit.ip).joinToString(" · "),
                             style = MaterialTheme.typography.bodyMedium,
@@ -188,9 +188,9 @@ private fun FoundTvs(scan: ScanUi, onRescan: () -> Unit, onPick: (ScanHit) -> Un
                     FilledTonalButton(onClick = { onPick(hit) }) {
                         Text(
                             when (row) {
-                                RowState.Found -> "Connect"
-                                RowState.NotAllowed -> "Try again"
-                                else -> "Continue"
+                                RowState.Found -> L.t("Connect", "اتصال")
+                                RowState.NotAllowed -> L.t("Try again", "حاول مرة أخرى")
+                                else -> L.t("Continue", "متابعة")
                             },
                         )
                     }
@@ -204,7 +204,7 @@ private fun FoundTvs(scan: ScanUi, onRescan: () -> Unit, onPick: (ScanHit) -> Un
                     LoadingIndicator(Modifier.size(32.dp))
                     Spacer(Modifier.width(12.dp))
                     Text(
-                        "Looking for ${if (scan.hits.isEmpty()) "your TV" else "more TVs"}…",
+                        L.t("Looking for ${if (scan.hits.isEmpty()) "your TV" else "more TVs"}…", "جارٍ البحث عن ${if (scan.hits.isEmpty()) "تلفزيونك" else "تلفزيونات أخرى"}…"),
                         Modifier.weight(1f),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -213,14 +213,14 @@ private fun FoundTvs(scan: ScanUi, onRescan: () -> Unit, onPick: (ScanHit) -> Un
                 }
                 // An empty scan starts again by itself; only a list that has something offers the button.
                 scan.hits.isEmpty() -> Text(
-                    "No TV yet. Momani Smart Transfer looks again in a moment.",
+                    L.t("No TV yet. Momani Smart Transfer looks again in a moment.", "لا يوجد تلفزيون بعد. يعيد Momani Smart Transfer البحث بعد لحظات."),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 else -> TextButton(onClick = onRescan) {
                     Icon(Icons.Default.Refresh, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Scan again")
+                    Text(L.t("Scan again", "ابحث مجدداً"))
                 }
             }
         }
@@ -241,17 +241,17 @@ private fun OffWifi(modifier: Modifier, onOpenWifi: () -> Unit, onAddByIp: () ->
             }
         }
         Spacer(Modifier.height(8.dp))
-        Text("This phone isn't on Wi-Fi", style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+        Text(L.t("This phone isn't on Wi-Fi", "هذا الهاتف غير متصل بالواي فاي"), style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
         Text(
-            "Join the same Wi-Fi as your TV. Momani Smart Transfer looks for it again as soon as you're on.",
+            L.t("Join the same Wi-Fi as your TV. Momani Smart Transfer looks for it again as soon as you're on.", "اتصل بشبكة الواي فاي نفسها التي يتصل بها تلفزيونك. يعيد Momani Smart Transfer البحث عنه فور اتصالك."),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(4.dp))
-        Button(onClick = onOpenWifi) { Text("Open Wi-Fi settings") }
+        Button(onClick = onOpenWifi) { Text(L.t("Open Wi-Fi settings", "فتح إعدادات الواي فاي")) }
         // VPNs and odd setups can still reach a TV by its address.
-        TextButton(onClick = onAddByIp) { Text("Add by IP address") }
+        TextButton(onClick = onAddByIp) { Text(L.t("Add by IP address", "إضافة بعنوان IP")) }
     }
 }
 
@@ -261,12 +261,12 @@ private fun AddByIpDialog(subnet: String?, onDismiss: () -> Unit, onSubmit: (Str
     var error by remember { mutableStateOf<String?>(null) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add by IP address") },
+        title = { Text(L.t("Add by IP address", "إضافة بعنوان IP")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Find it on the TV under Settings → Network → your Wi-Fi.")
+                Text(L.t("Find it on the TV under Settings → Network → your Wi-Fi.", "ستجده على التلفزيون من الإعدادات ← الشبكة ← شبكة الواي فاي الخاصة بك."))
                 // The scan screen says "your Wi-Fi"; the range is only useful here, while typing.
-                if (subnet != null) Text("Your Wi-Fi: $subnet", style = SmallNumber, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (subnet != null) Text(L.t("Your Wi-Fi: $subnet", "شبكتك: $subnet"), style = SmallNumber, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it; error = null },
@@ -278,7 +278,7 @@ private fun AddByIpDialog(subnet: String?, onDismiss: () -> Unit, onSubmit: (Str
                 )
             }
         },
-        confirmButton = { Button(onClick = { error = onSubmit(text) }) { Text("Connect") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        confirmButton = { Button(onClick = { error = onSubmit(text) }) { Text(L.t("Connect", "اتصال")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(L.t("Cancel", "إلغاء")) } },
     )
 }

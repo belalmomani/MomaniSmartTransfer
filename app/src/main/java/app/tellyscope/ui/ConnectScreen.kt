@@ -76,7 +76,7 @@ fun ConnectScreen(
         topBar = {
             TopAppBar(
                 title = {},
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = L.t("Back", "رجوع")) } },
             )
         },
         bottomBar = {
@@ -87,25 +87,25 @@ fun ConnectScreen(
             ) {
                 when (row) {
                     RowState.NotAllowed -> {
-                        TextButton(onClick = onBack) { Text("Back to TVs") }
-                        Button(onClick = onRetry) { Text("Try again") }
+                        TextButton(onClick = onBack) { Text(L.t("Back to TVs", "العودة إلى التلفزيونات")) }
+                        Button(onClick = onRetry) { Text(L.t("Try again", "حاول مرة أخرى")) }
                     }
                     is RowState.Code -> {
-                        TextButton(onClick = onBack) { Text("Cancel") }
+                        TextButton(onClick = onBack) { Text(L.t("Cancel", "إلغاء")) }
                         val missing = CODE_LENGTH - row.input.length
                         // The button says what's missing instead of sitting there disabled with no reason.
                         Button(onClick = onPair, enabled = !row.busy && missing == 0) {
                             Text(
                                 when {
-                                    row.busy -> "Pairing…"
-                                    missing == 0 -> "Pair"
-                                    missing == 1 -> "1 more digit"
-                                    else -> "$missing more digits"
+                                    row.busy -> L.t("Pairing…", "جارٍ الاقتران…")
+                                    missing == 0 -> L.t("Pair", "اقتران")
+                                    missing == 1 -> L.t("1 more digit", "رقم واحد متبقٍ")
+                                    else -> L.t("$missing more digits", "$missing أرقام متبقية")
                                 },
                             )
                         }
                     }
-                    else -> TextButton(onClick = onBack) { Text("Cancel") }
+                    else -> TextButton(onClick = onBack) { Text(L.t("Cancel", "إلغاء")) }
                 }
             }
         },
@@ -117,16 +117,16 @@ fun ConnectScreen(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(DeviceIcons.Tv, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
-                    listOfNotNull(hit.hostname ?: "Android device", hit.maker).distinct().joinToString(" · "),
+                    listOfNotNull(hit.hostname ?: L.t("Android device", "جهاز Android"), hit.maker).distinct().joinToString(" · "),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             when (row) {
                 is RowState.Code -> {
-                    Text("Type the pairing code", style = MaterialTheme.typography.headlineMedium)
+                    Text(L.t("Type the pairing code", "اكتب رمز الاقتران"), style = MaterialTheme.typography.headlineMedium)
                     Text(
-                        "On the TV, open the pairing screen and type the 6 digits it shows.",
+                        L.t("On the TV, open the pairing screen and type the 6 digits it shows.", "على التلفزيون افتح شاشة الاقتران واكتب الأرقام الستة التي تظهر."),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -135,7 +135,7 @@ fun ConnectScreen(
                         CodeBoxes(row.input, onChange = onCode, enabled = !row.busy, isError = row.error != null)
                     }
                     row.error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
-                    row.detail?.let { Details(listOf("From the TV" to it)) }
+                    row.detail?.let { Details(listOf(L.t("From the TV", "من التلفزيون") to it)) }
                 }
                 RowState.NotAllowed -> {
                     Surface(Modifier.size(64.dp), shape = CircleShape, color = MaterialTheme.colorScheme.errorContainer) {
@@ -143,34 +143,34 @@ fun ConnectScreen(
                             Icon(Icons.Default.Warning, null, Modifier.size(32.dp), tint = MaterialTheme.colorScheme.onErrorContainer)
                         }
                     }
-                    Text("No answer from the TV", style = MaterialTheme.typography.headlineMedium)
+                    Text(L.t("No answer from the TV", "لا رد من التلفزيون"), style = MaterialTheme.typography.headlineMedium)
                     Text(
-                        "The TV didn't accept the connection.",
+                        L.t("The TV didn't accept the connection.", "لم يقبل التلفزيون الاتصال."),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf(
-                            "Is the TV on and awake?",
-                            "Was the box on the TV closed, or Deny pressed? Try again and it asks once more.",
-                            "Some TVs switch debugging off after a restart. Turn it back on.",
+                            L.t("Is the TV on and awake?", "هل التلفزيون يعمل وليس في وضع السكون؟"),
+                            L.t("Was the box on the TV closed, or Deny pressed? Try again and it asks once more.", "هل أُغلق المربع على التلفزيون أو ضُغط «رفض»؟ حاول مجدداً وسيسأل مرة أخرى."),
+                            L.t("Some TVs switch debugging off after a restart. Turn it back on.", "بعض التلفزيونات توقف تصحيح الأخطاء بعد إعادة التشغيل. فعّله من جديد."),
                         ).forEach { Text("•  $it", style = MaterialTheme.typography.bodyMedium) }
                     }
                 }
                 // Wireless debugging TVs that already know this phone connect without asking.
                 is RowState.Waiting -> if (hit.kind == ScanKind.Wireless) Connecting() else {
-                    Text("Allow on your TV", style = MaterialTheme.typography.headlineMedium)
+                    Text(L.t("Allow on your TV", "اسمح على تلفزيونك"), style = MaterialTheme.typography.headlineMedium)
                     Text(
                         marked(
-                            if (phoneKey != null) "A box pops up on your TV. Check its key matches this phone's, tick **Always allow**, then select **Allow**."
-                            else "A box pops up on your TV. Tick **Always allow**, then select **Allow**.",
+                            if (phoneKey != null) L.t("A box pops up on your TV. Check its key matches this phone's, tick **Always allow**, then select **Allow**.", "يظهر مربع على تلفزيونك. تأكد أن مفتاحه يطابق مفتاح هذا الهاتف، ثم علّم **Always allow** واختر **Allow**.")
+                            else L.t("A box pops up on your TV. Tick **Always allow**, then select **Allow**.", "يظهر مربع على تلفزيونك. علّم **Always allow** ثم اختر **Allow**."),
                         ),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     phoneKey?.let { key ->
                         InfoBox {
-                            Text("This phone's key", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(L.t("This phone's key", "مفتاح هذا الهاتف"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             // Two lines of eight pairs, so it reads like the TV's and compares at a glance.
                             Text(
                                 key.split(':').chunked(8).joinToString("\n") { it.joinToString(":") },
@@ -183,7 +183,7 @@ fun ConnectScreen(
                         LoadingIndicator(Modifier.size(32.dp))
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            "Waiting for the TV… ${((now - row.since) / 1000).coerceAtLeast(0)} s",
+                            L.t("Waiting for the TV… ${((now - row.since) / 1000).coerceAtLeast(0)} s", "بانتظار التلفزيون… ${((now - row.since) / 1000).coerceAtLeast(0)} ث"),
                             style = SmallNumber,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -198,11 +198,11 @@ fun ConnectScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun Connecting() {
-    Text("Connecting", style = MaterialTheme.typography.headlineMedium)
+    Text(L.t("Connecting", "جارٍ الاتصال"), style = MaterialTheme.typography.headlineMedium)
     Row(verticalAlignment = Alignment.CenterVertically) {
         LoadingIndicator(Modifier.size(48.dp))
         Spacer(Modifier.width(12.dp))
-        Text("Reaching the TV…", style = MaterialTheme.typography.bodyLarge)
+        Text(L.t("Reaching the TV…", "جارٍ الوصول إلى التلفزيون…"), style = MaterialTheme.typography.bodyLarge)
     }
 }
 
@@ -250,7 +250,7 @@ private fun TvPrompt(key: String?) {
                     Text("Always allow from this computer", color = Color(0xFFE3E9E9), fontSize = 11.sp)
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
-                    Text("Cancel", color = accent, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                    Text(L.t("Cancel", "إلغاء"), color = accent, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
                     // Focused, the way the remote shows it.
                     Text(
                         "Allow",
