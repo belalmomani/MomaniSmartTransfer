@@ -4,6 +4,7 @@ package app.tellyscope
 
 import app.tellyscope.adb.Integrity
 import app.tellyscope.adb.TvFolder
+import app.tellyscope.data.DeviceState
 import app.tellyscope.ui.Copy
 import app.tellyscope.ui.L
 import java.util.Locale
@@ -67,5 +68,26 @@ class LanguageTest {
     @Test fun aMismatchIsStillAWarningInArabic() {
         Locale.setDefault(Locale("ar"))
         assertTrue(Copy.sentChecked("a", "a", TvFolder.DOWNLOAD, Integrity.Mismatch("x", "y")).contains("تحذير"))
+    }
+
+    @Test fun arabicCountNounsFollowTheRules() {
+        Locale.setDefault(Locale("ar"))
+        assertEquals("يوم، 3 ساعات", Copy.upFor(86_400L + 3 * 3_600))
+        assertEquals("يومان، ساعة", Copy.upFor(2 * 86_400L + 3_600))
+        assertEquals("11 دقيقة", Copy.upFor(11 * 60L))
+    }
+
+    @Test fun englishCountNounsAreUnchanged() {
+        Locale.setDefault(Locale.US)
+        assertEquals("1 day, 3 hours", Copy.upFor(86_400L + 3 * 3_600))
+        assertEquals("11 minutes", Copy.upFor(11 * 60L))
+    }
+
+    @Test fun deviceStatesAndAgeReadInArabic() {
+        Locale.setDefault(Locale("ar"))
+        DeviceState.entries.forEach { assertTrue(it.name, hasArabic(Copy.state(it))) }
+        assertTrue(hasArabic(Copy.ago(0, 5_000_000)))
+        Locale.setDefault(Locale.US)
+        assertEquals("Connected", Copy.state(DeviceState.Online))
     }
 }
