@@ -174,18 +174,22 @@ private fun FoundTvs(scan: ScanUi, onRescan: () -> Unit, onPick: (ScanHit) -> Un
                 Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
             ) {
-                Row(Modifier.padding(start = 16.dp, top = 12.dp, end = 12.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(DeviceIcons.Tv, null, Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.width(16.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(hit.hostname ?: hit.maker ?: L.t("Android device", "جهاز Android"), style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            listOfNotNull(hit.maker, hit.ip).joinToString(" · "),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                // The button sits under the name, full width: beside it, a long label like "حاول مرة أخرى"
+                // squeezed the name into a narrow column that broke the word "Android" in two.
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(DeviceIcons.Tv, null, Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.width(16.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(hit.hostname ?: hit.maker ?: L.t("Android device", "جهاز Android"), style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                listOfNotNull(hit.maker, hit.ip).joinToString(" · "),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
-                    FilledTonalButton(onClick = { onPick(hit) }) {
+                    FilledTonalButton(onClick = { onPick(hit) }, modifier = Modifier.fillMaxWidth()) {
                         Text(
                             when (row) {
                                 RowState.Found -> L.t("Connect", "اتصال")
