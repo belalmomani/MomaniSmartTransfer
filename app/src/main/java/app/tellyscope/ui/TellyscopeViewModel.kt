@@ -299,6 +299,11 @@ class TellyscopeViewModel(
     private val _done = MutableStateFlow<Done?>(null)
     val done: StateFlow<Done?> = _done.asStateFlow()
 
+    /** The connection check on show, or null. */
+    private val _diagnosis = MutableStateFlow<DiagnosisUi?>(null)
+    val diagnosis: StateFlow<DiagnosisUi?> = _diagnosis.asStateFlow()
+    private var diagnosisJob: Job? = null
+
     /** Every copy that ended, newest first. */
     private val _transferHistory = MutableStateFlow(transferLog?.all().orEmpty())
     val transferHistory: StateFlow<List<TransferRecord>> = _transferHistory.asStateFlow()
@@ -548,6 +553,20 @@ class TellyscopeViewModel(
             source.rename(id, name)
             _state.update { it.copy(devices = source.known()) }
         }
+    }
+
+    fun diagnose(hit: ScanHit) {
+        diagnosisJob?.cancel()
+        _diagnosis.value = DiagnosisUi(hit.hostname ?: hit.maker ?: hit.ip, hit.ip)
+        diagnosisJob = viewModelScope.launch {
+            val probes = source.diagnose(hit)
+            _diagnosis.update { it?.copy(probes = probes) }
+        }
+    }
+
+    fun closeDiagnosis() {
+        diagnosisJob?.cancel()
+        _diagnosis.value = null
     }
 
     fun favorite(id: String, on: Boolean) {

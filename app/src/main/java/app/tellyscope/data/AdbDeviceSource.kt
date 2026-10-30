@@ -10,7 +10,9 @@ import android.net.NetworkCapabilities
 import app.tellyscope.adb.Access
 import app.tellyscope.adb.ActionResult
 import app.tellyscope.adb.ApkInfo
+import app.tellyscope.adb.Diagnose
 import app.tellyscope.adb.Files
+import app.tellyscope.adb.Probe
 import app.tellyscope.adb.HomeOptions
 import app.tellyscope.adb.HomeResult
 import app.tellyscope.adb.InstallResult
@@ -278,6 +280,9 @@ class AdbDeviceSource(context: Context) : DeviceSource {
         AdbConnectResult.NeedsPairing -> ConnectResult.NeedsPairing
         is AdbConnectResult.Unreachable -> ConnectResult.Unreachable(r.reason)
     }
+
+    /** The port the scan saw, and the classic 5555 if that's a different one. */
+    override suspend fun diagnose(hit: ScanHit): List<Probe> = listOf(hit.port, 5555).distinct().map { Diagnose.probe(hit.ip, it) }
 
     override suspend fun pair(hit: ScanHit, code: String): ConnectResult {
         // A port typed for add-by-IP, else the last one a scan saw; never the connect port.

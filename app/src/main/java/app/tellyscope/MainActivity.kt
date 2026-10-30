@@ -170,6 +170,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun TellyscopeApp(vm: TellyscopeViewModel) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val diagnosis by vm.diagnosis.collectAsStateWithLifecycle()
     val browser = LocalUriHandler.current
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
@@ -212,6 +213,9 @@ fun TellyscopeApp(vm: TellyscopeViewModel) {
             onBack = if (adding) ({ adding = false }) else null,
             onOpenWifi = { context.openWifiSettings() },
             phoneKey = remember { Connector.fingerprint() },
+            diagnosis = diagnosis,
+            onDiagnose = vm::diagnose,
+            onCloseDiagnosis = vm::closeDiagnosis,
         )
     } else if (state.report != null) {
         BackHandler { vm.closeReport() }

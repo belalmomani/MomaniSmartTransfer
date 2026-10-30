@@ -9,6 +9,7 @@ import app.tellyscope.adb.InstallResult
 import app.tellyscope.adb.InstalledVersion
 import app.tellyscope.adb.Peripheral
 import app.tellyscope.adb.Progress
+import app.tellyscope.adb.Probe
 import app.tellyscope.adb.PushResult
 import app.tellyscope.adb.RemoteKey
 import app.tellyscope.adb.TvFacts
@@ -36,6 +37,9 @@ interface DeviceSource {
 
     /** Classic connect. Suspends while the TV shows the Allow prompt; the caller owns the timeout. */
     suspend fun connect(hit: ScanHit): ConnectResult
+
+    /** What the TV's debugging ports say to a bare greeting. Sends no key; a source with no TV has nothing to say. */
+    suspend fun diagnose(hit: ScanHit): List<Probe> = emptyList()
 
     /** Wireless-debugging pairing with the 6-digit code shown on the TV, then connect. */
     suspend fun pair(hit: ScanHit, code: String): ConnectResult

@@ -74,6 +74,9 @@ fun ScanScreen(
     onBack: (() -> Unit)? = null,
     onOpenWifi: () -> Unit = {},
     phoneKey: String? = null,
+    diagnosis: DiagnosisUi? = null,
+    onDiagnose: (ScanHit) -> Unit = {},
+    onCloseDiagnosis: () -> Unit = {},
 ) {
     var adding by remember { mutableStateOf(false) }
     var help by remember { mutableStateOf(false) }
@@ -132,7 +135,7 @@ fun ScanScreen(
             }
             BrandChips(brand, onPick = { brandName = it.name })
             GuideSteps(brand, step, onStep = { step = it }) {
-                FoundTvs(scan, onRescan, onPick = { hit ->
+                FoundTvs(scan, onRescan, onDiagnose, onPick = { hit ->
                     val row = scan.rows[hit.ip] ?: RowState.Found
                     if (row == RowState.Found || row == RowState.NotAllowed) onConnect(hit)
                     open = hit.ip
@@ -149,6 +152,7 @@ fun ScanScreen(
         }
     }
     if (help) HelpDialog(brand, onAddByIp = { adding = true }, onDismiss = { help = false })
+    diagnosis?.let { DiagnosisDialog(it, onCloseDiagnosis) }
     if (adding) AddByIpDialog(
         subnet = scan.progress?.subnet,
         onDismiss = { adding = false },
@@ -166,7 +170,7 @@ fun ScanScreen(
 /** Step 3: what the scan has found so far, each a tap away from its connect screen. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun FoundTvs(scan: ScanUi, onRescan: () -> Unit, onPick: (ScanHit) -> Unit) {
+private fun FoundTvs(scan: ScanUi, onRescan: () -> Unit, onDiagnose: (ScanHit) -> Unit, onPick: (ScanHit) -> Unit) {
     Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         scan.hits.forEach { hit ->
             val row = scan.rows[hit.ip] ?: RowState.Found
@@ -197,6 +201,12 @@ private fun FoundTvs(scan: ScanUi, onRescan: () -> Unit, onPick: (ScanHit) -> Un
                                 else -> L.t("Continue", "متابعة")
                             },
                         )
+                    }
+                    // Not allowed hides several different causes; this asks the TV which one it is.
+                    if (row == RowState.NotAllowed) {
+                        TextButton(onClick = { onDiagnose(hit) }, modifier = Modifier.fillMaxWidth()) {
+                            Text(L.t("Why can't it connect?", "لماذا لا يتصل؟"))
+                        }
                     }
                 }
             }
